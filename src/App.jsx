@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
 import './index.css';
 import bgVideo from '../static/mp4/login.mp4';
 
@@ -21,6 +22,27 @@ function App() {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [otpStatus, setOtpStatus] = useState('none');
   const [mockOtp, setMockOtp] = useState('');
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setName('');
+    setMobile('');
+    setCode('');
+    setDomain('');
+    setPlan('');
+    setEmailTouched(false);
+    setConfirmTouched(false);
+    setNameTouched(false);
+    setMobileTouched(false);
+    setCodeTouched(false);
+    setPasswordTouched(false);
+    setFormSubmitted(false);
+    setOtpStatus('none');
+    setMockOtp('');
+  };
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailInvalid = emailTouched && !emailRegex.test(email);
@@ -31,8 +53,10 @@ function App() {
     setOtpStatus('none');
     setMockOtp('');
     if (emailRegex.test(email)) {
+      setIsVerifyingEmail(true);
+      await new Promise(resolve => setTimeout(resolve, 2000));
       try {
-        const response = await fetch("http://127.0.0.1:8000/otp", {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/otp`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: email, name: name })
@@ -41,16 +65,18 @@ function App() {
           const data = await response.json();
           if (data.otp) {
             setMockOtp(data.otp);
-            alert("Verification code (Mock Mode): " + data.otp + "\nSent successfully to " + email);
+            toast.success("Verification code (Mock Mode): " + data.otp + "\nSent successfully to " + email, { duration: 4000 });
           } else {
-            alert("Verification code sent successfully to " + email);
+            toast.success("Verification code sent successfully to " + email);
           }
         } else {
           const errData = await response.json();
-          alert("Failed to send OTP: " + (errData.detail || "Unknown error"));
+          toast.error("Failed to send OTP: " + (errData.detail || "Unknown error"));
         }
       } catch (err) {
-        alert("Failed to connect to the backend server.");
+        toast.error("Failed to connect to the backend server.");
+      } finally {
+        setIsVerifyingEmail(false);
       }
     }
   };
@@ -63,7 +89,7 @@ function App() {
     }
     setOtpStatus('pending');
     try {
-      const response = await fetch("http://127.0.0.1:8000/verify-otp", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email, otp: finalCode })
@@ -77,7 +103,7 @@ function App() {
       }
     } catch (err) {
       setOtpStatus('invalid');
-      alert("Failed to connect to the backend server to verify OTP.");
+      toast.error("Failed to connect to the backend server to verify OTP.");
       return false;
     }
   };
@@ -94,7 +120,7 @@ function App() {
         setCodeTouched(true);
         setPasswordTouched(true);
         setConfirmTouched(true);
-        alert("Please fill all required fields.");
+        toast.error("Please fill all required fields.");
         return;
       }
       if (password !== confirmPassword) {
@@ -104,12 +130,12 @@ function App() {
       
       const isValid = await handleVerifyOtp(code);
       if (!isValid) {
-        alert("Invalid verification code. Cannot submit.");
+        toast.error("Invalid verification code. Cannot submit.");
         return;
       }
       
       try {
-        const createResponse = await fetch("http://127.0.0.1:8000/create_user", {
+        const createResponse = await fetch(`${import.meta.env.VITE_API_URL}/create_user`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -124,21 +150,54 @@ function App() {
         });
         if (createResponse.ok) {
           const result = await createResponse.json();
-          alert("User created successfully!\nName: " + result.user.name + "\nCompany: " + result.user.domain);
+          toast.success("User created successfully!\nName: " + result.user.name + "\nCompany: " + result.user.domain);
+          resetForm();
+          setIsLogin(true);
         } else {
           const errData = await createResponse.json();
-          alert("Failed to create user: " + (errData.detail || "Unknown error"));
+          toast.error("Failed to create user: " + (errData.detail || "Unknown error"));
         }
       } catch (err) {
-        alert("Failed to connect to the backend server to create user.");
+        toast.error("Failed to connect to the backend server to create user.");
       }
     } else {
-      console.log('Logging in');
+      if (!email || !password) {
+        setEmailTouched(true);
+        setPasswordTouched(true);
+        toast.error("Please fill all required fields.");
+        return;
+      }
+      
+      try {
+        const loginResponse = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            password: password
+          })
+        });
+        
+        if (loginResponse.ok) {
+          const result = await loginResponse.json();
+          toast.success("login success");
+          resetForm();
+        } else if (loginResponse.status === 404) {
+          toast.error("please signup");
+        } else if (loginResponse.status === 401) {
+          toast.error("unable to login");
+        } else {
+          toast.error("unable to login");
+        }
+      } catch (err) {
+        toast.error("Failed to connect to the backend server to login.");
+      }
     }
   };
 
   return (
     <div className="app-container">
+      <Toaster position="top-right" />
       <video autoPlay loop muted className="background-video">
         <source src={bgVideo} type="video/mp4" />
       </video>
@@ -222,7 +281,17 @@ function App() {
                   }}
                   className={(isEmailInvalid || ((formSubmitted || emailTouched) && !email)) ? 'input-error' : ''}
                 />
-                {!isLogin && <button type="button" className="verify-btn" onClick={handleVerifyClick}>Verify</button>}
+                {!isLogin && (
+                  <button 
+                    type="button" 
+                    className="verify-btn" 
+                    onClick={handleVerifyClick} 
+                    disabled={isVerifyingEmail}
+                    style={{ minWidth: '85px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    {isVerifyingEmail ? <div className="spinner" style={{ width: '18px', height: '18px', borderWidth: '2px', borderColor: '#ffffff transparent #ffffff transparent' }}></div> : "Verify"}
+                  </button>
+                )}
               </div>
               {isEmailInvalid && <span className="field-error">Please enter a valid email address format.</span>}
               {(formSubmitted || emailTouched) && !email && !isEmailInvalid && <span className="field-error">Email is required.</span>}
