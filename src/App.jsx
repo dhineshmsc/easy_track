@@ -4,6 +4,46 @@ import bgVideo from '../static/mp4/login.mp4';
 
 function App() {
   const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [confirmTouched, setConfirmTouched] = useState(false);
+  const [name, setName] = useState('');
+  const [nameTouched, setNameTouched] = useState(false);
+  const [mobile, setMobile] = useState('');
+  const [mobileTouched, setMobileTouched] = useState(false);
+  const [code, setCode] = useState('');
+  const [codeTouched, setCodeTouched] = useState(false);
+  const [domain, setDomain] = useState('');
+  const [plan, setPlan] = useState('');
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailInvalid = emailTouched && !emailRegex.test(email);
+  const isPasswordMismatch = !isLogin && confirmTouched && password !== confirmPassword;
+
+  const handleVerifyClick = () => {
+    setEmailTouched(true);
+    // Logic for sending verification code...
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setFormSubmitted(true);
+    
+    if (!isLogin && password !== confirmPassword) {
+      setConfirmTouched(true);
+      return;
+    }
+    
+    // Additional stop conditions can be added here
+    // ...
+    
+    // Proceed with login/signup...
+    console.log(isLogin ? 'Logging in' : 'Signing up');
+  };
 
   return (
     <div className="app-container">
@@ -29,38 +69,160 @@ function App() {
         </div>
 
         <div className="form-container">
-          <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+          <form className="auth-form" onSubmit={handleSubmit}>
+
+            {!isLogin && (
+              <>
+                <div className="input-group">
+                  <label>Name <span className="required-star">*</span></label>
+                  <input 
+                    type="text" 
+                    placeholder="Enter your name" 
+                    value={name}
+                    onChange={(e) => {
+                      if (/^[a-zA-Z\s]*$/.test(e.target.value)) {
+                        setName(e.target.value);
+                      }
+                    }}
+                    className={(formSubmitted || nameTouched) && !name ? 'input-error' : ''}
+                  />
+                  {(formSubmitted || nameTouched) && !name && <span className="field-error">Name is required.</span>}
+                </div>
+                <div className="input-group">
+                  <label>Mobile Number <span className="required-star">*</span></label>
+                  <input 
+                    type="tel" 
+                    placeholder="Enter your mobile number" 
+                    value={mobile}
+                    onFocus={() => setNameTouched(true)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^\d*$/.test(val) && val.length <= 10) {
+                        setMobile(val);
+                      }
+                    }}
+                    className={(formSubmitted || mobileTouched) && (!mobile || mobile.length < 10) ? 'input-error' : ''}
+                  />
+                  {(formSubmitted || mobileTouched) && !mobile && <span className="field-error">Mobile number is required.</span>}
+                  {(formSubmitted || mobileTouched) && mobile && mobile.length < 10 && <span className="field-error">Mobile number must be exactly 10 digits.</span>}
+                </div>
+              </>
+            )}
+
             <div className="input-group">
-              <label>Username</label>
-              <input type="text" placeholder="Enter username" />
+              <label>Email <span className="required-star">*</span></label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <input 
+                  type="email" 
+                  placeholder="Enter email address" 
+                  style={{ flex: 1 }} 
+                  value={email}
+                  onFocus={() => {
+                    if (!isLogin) {
+                      setNameTouched(true);
+                      setMobileTouched(true);
+                    }
+                  }}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailTouched) setEmailTouched(true); 
+                  }}
+                  className={(isEmailInvalid || ((formSubmitted || emailTouched) && !email)) ? 'input-error' : ''}
+                />
+                {!isLogin && <button type="button" className="verify-btn" onClick={handleVerifyClick}>Verify</button>}
+              </div>
+              {isEmailInvalid && <span className="field-error">Please enter a valid email address format.</span>}
+              {(formSubmitted || emailTouched) && !email && !isEmailInvalid && <span className="field-error">Email is required.</span>}
             </div>
 
             {!isLogin && (
               <div className="input-group">
-                <label>Email</label>
-                <input type="email" placeholder="Enter email address" />
+                <label>Verification Code <span className="required-star">*</span></label>
+                <input 
+                  type="text" 
+                  placeholder="Enter verification code" 
+                  value={code}
+                  onFocus={() => {
+                    setNameTouched(true);
+                    setMobileTouched(true);
+                    setEmailTouched(true);
+                  }}
+                  onChange={(e) => setCode(e.target.value)}
+                  className={(formSubmitted || codeTouched) && !code ? 'input-error' : ''}
+                />
+                {(formSubmitted || codeTouched) && !code && <span className="field-error">Verification code is required.</span>}
               </div>
             )}
 
             <div className="input-group">
-              <label>Password</label>
-              <input type="password" placeholder="Enter password" />
+              <label>Password <span className="required-star">*</span></label>
+              <input 
+                type="password" 
+                placeholder="Enter password" 
+                value={password}
+                onFocus={() => {
+                  if (!isLogin) {
+                    setNameTouched(true);
+                    setMobileTouched(true);
+                    setEmailTouched(true);
+                    setCodeTouched(true);
+                  } else {
+                    setEmailTouched(true);
+                  }
+                }}
+                onChange={(e) => setPassword(e.target.value)}
+                className={(isPasswordMismatch || ((formSubmitted || passwordTouched) && !password)) ? 'input-error' : ''}
+              />
+              {(formSubmitted || passwordTouched) && !password && <span className="field-error">Password is required.</span>}
             </div>
 
             {!isLogin && (
               <>
                 <div className="input-group">
-                  <label>Company Domain</label>
-                  <input type="text" placeholder="e.g. acme.com" />
+                  <label>Confirm Password <span className="required-star">*</span></label>
+                  <input 
+                    type="password" 
+                    placeholder="Re-enter password" 
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      setConfirmTouched(true);
+                    }}
+                    onBlur={() => setConfirmTouched(true)}
+                    className={(isPasswordMismatch || (formSubmitted && !confirmPassword)) ? 'input-error' : ''}
+                  />
+                  {isPasswordMismatch && <span className="field-error">Passwords do not match</span>}
+                  {formSubmitted && !confirmPassword && !isPasswordMismatch && <span className="field-error">Please confirm your password.</span>}
                 </div>
                 <div className="input-group">
-                  <label>Select Plan</label>
-                  <select>
+                  <label>Company Name <span className="required-star">*</span></label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Acme Corp" 
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    onFocus={() => {
+                      setConfirmTouched(true);
+                      setPasswordTouched(true);
+                    }}
+                    className={formSubmitted && !domain ? 'input-error' : ''}
+                  />
+                  {formSubmitted && !domain && <span className="field-error">Company Name is required.</span>}
+                </div>
+                <div className="input-group">
+                  <label>Select Plan <span className="required-star">*</span></label>
+                  <select 
+                    value={plan} 
+                    onChange={(e) => setPlan(e.target.value)}
+                    className={formSubmitted && !plan ? 'input-error' : ''}
+                  >
+                    <option value="" disabled hidden>Select Plan</option>
                     <option value="free">Free</option>
                     <option value="silver">Silver</option>
                     <option value="gold">Gold</option>
                     <option value="platinum">Platinum</option>
                   </select>
+                  {formSubmitted && !plan && <span className="field-error">Plan is required.</span>}
                 </div>
               </>
             )}
