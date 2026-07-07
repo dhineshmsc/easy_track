@@ -1,16 +1,28 @@
-# React + Vite
+# Easy Track - Authentication Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This is a modern React + Vite application featuring a glassmorphism Apple-style UI with robust form validation for Sign In and Sign Up modes.
 
-Currently, two official plugins are available:
+## How to Start the Application
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Follow these steps to run the application locally on your machine:
 
-## React Compiler
+1. **Install Dependencies**
+   Make sure you have Node.js installed. Open your terminal in the project directory and run:
+   ```bash
+   npm install
+   ```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+2. **Start the Development Server**
+   Run the following command to start the app:
+   ```bash
+   npm run dev
+   ```
 
-## Expanding the Oxlint configuration
+3. **Open in Browser**
+   Once the server starts, it will provide a local URL (usually `http://localhost:5173/`). Open this link in your browser to view the app!
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Features
+- Real-time cascading form validation
+- Dynamic Sign-In / Sign-Up toggle
+- Responsive Glassmorphism UI
+- Seamless Background Video Integration

@@ -19,30 +19,122 @@ function App() {
   const [plan, setPlan] = useState('');
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [otpStatus, setOtpStatus] = useState('none');
+  const [mockOtp, setMockOtp] = useState('');
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailInvalid = emailTouched && !emailRegex.test(email);
   const isPasswordMismatch = !isLogin && confirmTouched && password !== confirmPassword;
 
-  const handleVerifyClick = () => {
+  const handleVerifyClick = async () => {
     setEmailTouched(true);
-    // Logic for sending verification code...
+    setOtpStatus('none');
+    setMockOtp('');
+    if (emailRegex.test(email)) {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email, name: name })
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.otp) {
+            setMockOtp(data.otp);
+            alert("Verification code (Mock Mode): " + data.otp + "\nSent successfully to " + email);
+          } else {
+            alert("Verification code sent successfully to " + email);
+          }
+        } else {
+          const errData = await response.json();
+          alert("Failed to send OTP: " + (errData.detail || "Unknown error"));
+        }
+      } catch (err) {
+        alert("Failed to connect to the backend server.");
+      }
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleVerifyOtp = async (codeToVerify) => {
+    const finalCode = codeToVerify || code;
+    if (!email || !finalCode) {
+      setOtpStatus('invalid');
+      return false;
+    }
+    setOtpStatus('pending');
+    try {
+      const response = await fetch("http://127.0.0.1:8000/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, otp: finalCode })
+      });
+      if (response.ok) {
+        setOtpStatus('valid');
+        return true;
+      } else {
+        setOtpStatus('invalid');
+        return false;
+      }
+    } catch (err) {
+      setOtpStatus('invalid');
+      alert("Failed to connect to the backend server to verify OTP.");
+      return false;
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setFormSubmitted(true);
     
-    if (!isLogin && password !== confirmPassword) {
-      setConfirmTouched(true);
-      return;
+    if (!isLogin) {
+      if (!name || !mobile || !email || !code || !password || !confirmPassword || !domain || !plan) {
+        setNameTouched(true);
+        setMobileTouched(true);
+        setEmailTouched(true);
+        setCodeTouched(true);
+        setPasswordTouched(true);
+        setConfirmTouched(true);
+        alert("Please fill all required fields.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setConfirmTouched(true);
+        return;
+      }
+      
+      const isValid = await handleVerifyOtp(code);
+      if (!isValid) {
+        alert("Invalid verification code. Cannot submit.");
+        return;
+      }
+      
+      try {
+        const createResponse = await fetch("http://127.0.0.1:8000/create_user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: name,
+            mobile: mobile,
+            email: email,
+            code: code,
+            password: password,
+            domain: domain,
+            plan: plan
+          })
+        });
+        if (createResponse.ok) {
+          const result = await createResponse.json();
+          alert("User created successfully!\nName: " + result.user.name + "\nCompany: " + result.user.domain);
+        } else {
+          const errData = await createResponse.json();
+          alert("Failed to create user: " + (errData.detail || "Unknown error"));
+        }
+      } catch (err) {
+        alert("Failed to connect to the backend server to create user.");
+      }
+    } else {
+      console.log('Logging in');
     }
-    
-    // Additional stop conditions can be added here
-    // ...
-    
-    // Proceed with login/signup...
-    console.log(isLogin ? 'Logging in' : 'Signing up');
   };
 
   return (
@@ -126,6 +218,7 @@ function App() {
                   onChange={(e) => {
                     setEmail(e.target.value);
                     if (emailTouched) setEmailTouched(true); 
+                    setOtpStatus('none');
                   }}
                   className={(isEmailInvalid || ((formSubmitted || emailTouched) && !email)) ? 'input-error' : ''}
                 />
@@ -138,19 +231,55 @@ function App() {
             {!isLogin && (
               <div className="input-group">
                 <label>Verification Code <span className="required-star">*</span></label>
-                <input 
-                  type="text" 
-                  placeholder="Enter verification code" 
-                  value={code}
-                  onFocus={() => {
-                    setNameTouched(true);
-                    setMobileTouched(true);
-                    setEmailTouched(true);
-                  }}
-                  onChange={(e) => setCode(e.target.value)}
-                  className={(formSubmitted || codeTouched) && !code ? 'input-error' : ''}
-                />
-                {(formSubmitted || codeTouched) && !code && <span className="field-error">Verification code is required.</span>}
+                <div style={{ position: 'relative' }}>
+                  {mockOtp && <span id="mock-otp-value" style={{ display: 'none' }}>{mockOtp}</span>}
+                  <input 
+                    type="text" 
+                    placeholder="Enter verification code" 
+                    value={code}
+                    onFocus={() => {
+                      setNameTouched(true);
+                      setMobileTouched(true);
+                      setEmailTouched(true);
+                    }}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCode(val);
+                      setOtpStatus('none');
+                      if (val.length === 6) {
+                        handleVerifyOtp(val);
+                      }
+                    }}
+                    className={((formSubmitted || codeTouched || otpStatus === 'invalid') && !code) ? 'input-error' : ''}
+                    style={{ paddingRight: '45px' }}
+                  />
+                  {otpStatus === 'valid' && (
+                    <div className="validation-icon-container">
+                      <svg className="validation-icon success" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                  )}
+                  {otpStatus === 'invalid' && (
+                    <div className="validation-icon-container">
+                      <svg className="validation-icon error" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </div>
+                  )}
+                  {otpStatus === 'pending' && (
+                    <div className="validation-icon-container">
+                      <div className="spinner"></div>
+                    </div>
+                  )}
+                </div>
+                {((formSubmitted || codeTouched || otpStatus === 'invalid') && !code) && (
+                  <span className="field-error">Verification code is required.</span>
+                )}
+                {(code && otpStatus === 'invalid') && (
+                  <span className="field-error">Invalid verification code.</span>
+                )}
               </div>
             )}
 
@@ -166,6 +295,7 @@ function App() {
                     setMobileTouched(true);
                     setEmailTouched(true);
                     setCodeTouched(true);
+                    handleVerifyOtp();
                   } else {
                     setEmailTouched(true);
                   }
@@ -227,7 +357,15 @@ function App() {
               </>
             )}
 
-            <button type="submit" className="submit-btn">
+            <button 
+              type="submit" 
+              className="submit-btn"
+              disabled={!isLogin && code.length !== 6}
+              style={{
+                opacity: (!isLogin && code.length !== 6) ? 0.6 : 1,
+                cursor: (!isLogin && code.length !== 6) ? 'not-allowed' : 'pointer'
+              }}
+            >
               {isLogin ? 'Login' : 'Submit'}
             </button>
           </form>
