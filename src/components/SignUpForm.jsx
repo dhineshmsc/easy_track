@@ -43,10 +43,13 @@ const SignUpForm = ({ onSuccess }) => {
     if (emailRegex.test(email)) {
       setIsVerifyingEmail(true);
       try {
+        // Short delay so the loading icon is visible before the request completes instantly
+        await new Promise(resolve => setTimeout(resolve, 600));
+        
         const response = await fetch(`${import.meta.env.VITE_API_URL}/otp`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, name })
+          body: JSON.stringify({ email, name, purpose: 'register' })
         });
         if (response.ok) {
           const data = await response.json();

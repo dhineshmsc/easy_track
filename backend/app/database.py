@@ -18,3 +18,9 @@ except Exception as e:
 
 def get_users_collection():
     return users_collection
+
+def get_companies_collection():
+    return db["companies"] if db is not None else None
+
+def get_mongo_client():
+    return mongo_client

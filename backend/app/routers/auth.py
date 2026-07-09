@@ -2,7 +2,7 @@ import datetime
 from fastapi import APIRouter, HTTPException
 
 from app.schemas.user import EmailRequest, VerifyOTPRequest, CreateUserRequest, LoginRequest, ResetPasswordRequest
-from app.database import get_users_collection
+from app.database import get_users_collection, get_companies_collection
 from app.utils import generate_otp, send_otp_email, verify_stored_otp
 from app.auth import hash_password, verify_password
 
@@ -52,24 +52,56 @@ async def register(req: CreateUserRequest):
         raise HTTPException(status_code=400, detail="this account already have")
 
     # Generate sequential user ID (s.no) and Timestamp
-    last_user = users_collection.find_one(sort=[("id", -1)])
-    user_id = last_user["id"] + 1 if last_user and "id" in last_user else 1
+    last_user = users_collection.find_one(sort=[("user_id", -1)])
+    user_id = last_user["user_id"] + 1 if last_user and "user_id" in last_user else 1
     created_at = datetime.datetime.utcnow()
 
     # Create the document
     user_data = req.dict()
-    user_data["id"] = user_id
+    user_data["user_id"] = user_id
     user_data["created_at"] = created_at
     user_data["password"] = hash_password(req.password)
+    user_data["role"] = "super admin"
+    
+    # Calculate expire_date
+    plan_lower = req.plan.lower()
+    days_to_add = 30
+    if plan_lower == "silver" or plan_lower == "sliver":
+        days_to_add = 60
+    elif plan_lower == "gold":
+        days_to_add = 90
+    elif plan_lower == "platinum":
+        days_to_add = 120
+    expire_date = created_at + datetime.timedelta(days=days_to_add)
     
     # Do not save the code/OTP in DB
     if "code" in user_data:
         del user_data["code"]
 
     try:
+        # Create company document
+        companies_collection = get_companies_collection()
+        company_data = {
+            "company_name": req.domain,
+            "plan": req.plan,
+            "expire_date": expire_date,
+            "created_at": created_at,
+            "email": req.email,
+            "mobile":req.mobile,
+            "user_id": user_id,
+            "status":"active",
+        }
+        
+        if companies_collection is not None:
+            companies_collection.insert_one(company_data)
+            
+        # Insert user into global users collection
         users_collection.insert_one(user_data)
+            
         if "_id" in user_data:
             del user_data["_id"]
+        if "password" in user_data:
+            del user_data["password"]
             
         print(f"\n[USER REGISTRATION] User created successfully: {user_data}\n")
         return {"message": "User created successfully", "user": user_data}

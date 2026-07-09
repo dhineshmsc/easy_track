@@ -29,6 +29,8 @@ const ForgotPasswordForm = ({ onBackToLogin }) => {
     if (emailRegex.test(email)) {
       setIsVerifyingEmail(true);
       try {
+        await new Promise(resolve => setTimeout(resolve, 600));
+        
         const response = await fetch(`${import.meta.env.VITE_API_URL}/otp`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
