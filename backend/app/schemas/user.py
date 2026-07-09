@@ -21,3 +21,8 @@ class CreateUserRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    otp: str
+    new_password: str

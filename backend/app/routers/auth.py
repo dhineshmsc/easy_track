@@ -1,7 +1,7 @@
 import datetime
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.user import EmailRequest, VerifyOTPRequest, CreateUserRequest, LoginRequest
+from app.schemas.user import EmailRequest, VerifyOTPRequest, CreateUserRequest, LoginRequest, ResetPasswordRequest
 from app.database import get_users_collection
 from app.utils import generate_otp, send_otp_email, verify_stored_otp
 from app.auth import hash_password, verify_password
@@ -89,3 +89,38 @@ async def login(req: LoginRequest):
         raise HTTPException(status_code=401, detail="Unable to login")
         
     return {"message": "Login success", "name": user.get("name", "")}
+
+@router.post("/reset-password-otp")
+async def send_reset_otp(req: EmailRequest):
+    if not req.email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    users_collection = get_users_collection()
+    user = users_collection.find_one({"email": req.email})
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Account not found. Please sign up.")
+
+    otp = generate_otp(req.email)
+    
+    success = send_otp_email(req.email, otp, user.get("name", "there"))
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send email")
+        
+    return {"message": "OTP sent successfully"}
+
+@router.post("/reset-password")
+async def reset_password(req: ResetPasswordRequest):
+    if not verify_stored_otp(req.email, req.otp):
+        raise HTTPException(status_code=400, detail="Invalid verification code")
+    
+    users_collection = get_users_collection()
+    user = users_collection.find_one({"email": req.email})
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Account not found.")
+
+    hashed_pw = hash_password(req.new_password)
+    users_collection.update_one({"email": req.email}, {"$set": {"password": hashed_pw}})
+    
+    return {"message": "Password reset successfully"}
