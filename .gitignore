@@ -24,3 +24,13 @@ dist-ssr
 *.sw?
 .env
 .env_sample
+.pyc 
+
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
