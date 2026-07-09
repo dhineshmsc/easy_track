@@ -14,14 +14,17 @@ async def send_otp(req: EmailRequest):
         raise HTTPException(status_code=400, detail="Email is required")
 
     users_collection = get_users_collection()
+    user = users_collection.find_one({"email": req.email})
     
-    # Check if user already exists in DB before sending OTP
-    if users_collection.find_one({"email": req.email}):
+    if req.purpose == "register" and user:
         raise HTTPException(status_code=400, detail="this account already have")
+    elif req.purpose == "reset" and not user:
+        raise HTTPException(status_code=404, detail="Account not found. Please sign up.")
 
     otp = generate_otp(req.email)
     
-    success = send_otp_email(req.email, otp, req.name)
+    name = user.get("name", "there") if user else req.name
+    success = send_otp_email(req.email, otp, name)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to send email")
         
@@ -90,24 +93,7 @@ async def login(req: LoginRequest):
         
     return {"message": "Login success", "name": user.get("name", "")}
 
-@router.post("/reset-password-otp")
-async def send_reset_otp(req: EmailRequest):
-    if not req.email:
-        raise HTTPException(status_code=400, detail="Email is required")
 
-    users_collection = get_users_collection()
-    user = users_collection.find_one({"email": req.email})
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="Account not found. Please sign up.")
-
-    otp = generate_otp(req.email)
-    
-    success = send_otp_email(req.email, otp, user.get("name", "there"))
-    if not success:
-        raise HTTPException(status_code=500, detail="Failed to send email")
-        
-    return {"message": "OTP sent successfully"}
 
 @router.post("/reset-password")
 async def reset_password(req: ResetPasswordRequest):

@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class EmailRequest(BaseModel):
     email: str
     name: Optional[str] = None
+    purpose: Optional[str] = "register"
 
 class VerifyOTPRequest(BaseModel):
     email: str

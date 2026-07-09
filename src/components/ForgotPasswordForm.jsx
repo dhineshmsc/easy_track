@@ -29,10 +29,10 @@ const ForgotPasswordForm = ({ onBackToLogin }) => {
     if (emailRegex.test(email)) {
       setIsVerifyingEmail(true);
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/reset-password-otp`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/otp`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email })
+          body: JSON.stringify({ email, purpose: 'reset' })
         });
         
         if (response.ok) {
@@ -55,6 +55,33 @@ const ForgotPasswordForm = ({ onBackToLogin }) => {
     }
   };
 
+  const handleVerifyOtp = async (codeToVerify) => {
+    const finalCode = codeToVerify || code;
+    if (!email || !finalCode) {
+      setOtpStatus('invalid');
+      return false;
+    }
+    setOtpStatus('pending');
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp: finalCode })
+      });
+      if (response.ok) {
+        setOtpStatus('valid');
+        return true;
+      } else {
+        setOtpStatus('invalid');
+        return false;
+      }
+    } catch (err) {
+      setOtpStatus('invalid');
+      toast.error("Failed to verify OTP.");
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormSubmitted(true);
@@ -68,6 +95,12 @@ const ForgotPasswordForm = ({ onBackToLogin }) => {
     
     if (password !== confirmPassword) {
       setConfirmTouched(true);
+      return;
+    }
+    
+    const isValid = await handleVerifyOtp(code);
+    if (!isValid) {
+      toast.error("Invalid verification code. Cannot submit.");
       return;
     }
     
@@ -145,18 +178,34 @@ const ForgotPasswordForm = ({ onBackToLogin }) => {
             value={code}
             onFocus={() => { setEmailTouched(true); }}
             onChange={(e) => {
-              setCode(e.target.value);
+              const val = e.target.value;
+              setCode(val);
               setOtpStatus('none');
+              if (val.length === 6) {
+                handleVerifyOtp(val);
+              }
             }}
             className={((formSubmitted || codeTouched || otpStatus === 'invalid') && !code) ? 'input-error' : ''}
             style={{ paddingRight: '45px' }}
           />
+          {otpStatus === 'valid' && (
+            <div className="validation-icon-container">
+              <svg className="validation-icon success" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+          )}
           {otpStatus === 'invalid' && (
             <div className="validation-icon-container">
               <svg className="validation-icon error" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
+            </div>
+          )}
+          {otpStatus === 'pending' && (
+            <div className="validation-icon-container">
+              <div className="spinner"></div>
             </div>
           )}
         </div>
