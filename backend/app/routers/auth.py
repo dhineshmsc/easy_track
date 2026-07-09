@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 from app.schemas.user import EmailRequest, VerifyOTPRequest, CreateUserRequest, LoginRequest, ResetPasswordRequest
 from app.database import get_users_collection, get_companies_collection
 from app.utils import generate_otp, send_otp_email, verify_stored_otp
-from app.auth import hash_password, verify_password
+from app.auth import hash_password, verify_password, create_access_token
 
 router = APIRouter()
 
@@ -123,7 +123,13 @@ async def login(req: LoginRequest):
     if not is_valid:
         raise HTTPException(status_code=401, detail="Unable to login")
         
-    return {"message": "Login success", "name": user.get("name", "")}
+    access_token = create_access_token(data={"user_id": user.get("user_id")})
+        
+    return {
+        "message": "Login success", 
+        "name": user.get("name", ""),
+        "token": access_token
+    }
 
 
 

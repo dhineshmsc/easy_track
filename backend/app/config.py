@@ -14,5 +14,9 @@ class Settings:
     SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
     SENDER_EMAIL: str = os.getenv("SENDER_EMAIL", "")
+    
+    # JWT Configuration
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "")
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 settings = Settings()
