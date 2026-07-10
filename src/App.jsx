@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import './index.css';
 import bgVideo from '../static/mp4/login.mp4';
 import LoginForm from './components/LoginForm';
 import SignUpForm from './components/SignUpForm';
 import ForgotPasswordForm from './components/ForgotPasswordForm';
+import Dashboard from './pages/Dashboard';
 
-function App() {
+const AuthInterface = () => {
   const [currentView, setCurrentView] = useState('login'); // 'login', 'signup', 'forgot'
 
   return (
     <div className="app-container">
-      <Toaster position="top-right" />
       <video autoPlay loop muted className="background-video">
         <source src={bgVideo} type="video/mp4" />
       </video>
@@ -49,6 +50,18 @@ function App() {
         </div>
       </div>
     </div>
+  );
+};
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Toaster position="top-right" />
+      <Routes>
+        <Route path="/" element={<AuthInterface />} />
+        <Route path="/:company/dashboard" element={<Dashboard />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

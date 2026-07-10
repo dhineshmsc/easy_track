@@ -128,6 +128,7 @@ async def login(req: LoginRequest):
     return {
         "message": "Login success", 
         "name": user.get("name", ""),
+        "company": user.get("domain", "default"),
         "token": access_token
     }
 

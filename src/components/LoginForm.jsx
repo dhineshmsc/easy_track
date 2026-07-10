@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = ({ onSuccess, onForgotPassword }) => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailTouched, setEmailTouched] = useState(false);
@@ -38,9 +40,15 @@ const LoginForm = ({ onSuccess, onForgotPassword }) => {
       });
       
       if (loginResponse.ok) {
+        const data = await loginResponse.json();
         toast.success("login success");
         resetForm();
         if (onSuccess) onSuccess();
+        
+        if (data.name) localStorage.setItem('username', data.name);
+        if (data.token) localStorage.setItem('token', data.token);
+        const company = data.company || 'default';
+        navigate(`/${company}/dashboard`);
       } else if (loginResponse.status === 404) {
         toast.error("please signup");
       } else if (loginResponse.status === 401) {
