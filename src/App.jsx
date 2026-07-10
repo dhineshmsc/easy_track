@@ -7,6 +7,8 @@ import LoginForm from './components/LoginForm';
 import SignUpForm from './components/SignUpForm';
 import ForgotPasswordForm from './components/ForgotPasswordForm';
 import Dashboard from './pages/Dashboard';
+import Projects from './pages/Projects';
+import Board from './pages/Board';
 
 const AuthInterface = () => {
   const [currentView, setCurrentView] = useState('login'); // 'login', 'signup', 'forgot'
@@ -60,6 +62,8 @@ function App() {
       <Routes>
         <Route path="/" element={<AuthInterface />} />
         <Route path="/:company/dashboard" element={<Dashboard />} />
+        <Route path="/:company/projects" element={<Projects />} />
+        <Route path="/:company/projects/:projectId/board" element={<Board />} />
       </Routes>
     </BrowserRouter>
   );

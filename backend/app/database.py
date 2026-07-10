@@ -22,5 +22,14 @@ def get_users_collection():
 def get_companies_collection():
     return db["companies"] if db is not None else None
 
+def get_projects_collection():
+    return db["projects"] if db is not None else None
+
+def get_stories_collection():
+    return db["stories"] if db is not None else None
+
+def get_tasks_collection():
+    return db["tasks"] if db is not None else None
+
 def get_mongo_client():
     return mongo_client
