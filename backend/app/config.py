@@ -1,8 +1,11 @@
 import os
 from dotenv import load_dotenv
 
+# Build path to backend directory's .env file
+env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(dotenv_path=env_path)
 
 class Settings:
     # MongoDB

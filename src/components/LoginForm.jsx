@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
-const LoginForm = ({ onSuccess, onForgotPassword }) => {
+const LoginForm = ({ onSuccess, onForgotPassword, onFirstLogin }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,9 +46,15 @@ const LoginForm = ({ onSuccess, onForgotPassword }) => {
         if (onSuccess) onSuccess();
         
         if (data.name) localStorage.setItem('username', data.name);
+        if (data.user_id) localStorage.setItem('user_id', data.user_id);
         if (data.token) localStorage.setItem('token', data.token);
-        const company = data.company || 'default';
-        navigate(`/${company}/dashboard`);
+        
+        if (data.is_first_login && onFirstLogin) {
+          onFirstLogin(email);
+        } else {
+          const company = data.company || 'default';
+          navigate(`/${company}/dashboard`);
+        }
       } else if (loginResponse.status === 404) {
         toast.error("please signup");
       } else if (loginResponse.status === 401) {

@@ -16,7 +16,7 @@ class CreateUserRequest(BaseModel):
     email: str
     code: str
     password: str
-    domain: str
+    company_name: str
     plan: str
 
 class LoginRequest(BaseModel):
@@ -26,4 +26,9 @@ class LoginRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     email: str
     otp: str
+    new_password: str
+
+class UpdateFirstPasswordRequest(BaseModel):
+    email: str
+    old_password: str
     new_password: str

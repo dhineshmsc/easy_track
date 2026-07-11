@@ -5,19 +5,22 @@ import './index.css';
 import LoginForm from './components/LoginForm';
 import SignUpForm from './components/SignUpForm';
 import ForgotPasswordForm from './components/ForgotPasswordForm';
+import UpdatePasswordForm from './components/UpdatePasswordForm';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import Board from './pages/Board';
+import Users from './pages/Users';
 
 const AuthInterface = () => {
-  const [currentView, setCurrentView] = useState('login'); // 'login', 'signup', 'forgot'
+  const [currentView, setCurrentView] = useState('login'); // 'login', 'signup', 'forgot', 'update_password'
+  const [loginEmail, setLoginEmail] = useState('');
 
   return (
     <div className="app-container">
       <div className="glass-panel">
         <div className="tab-container">
           <button 
-            className={`tab ${currentView === 'login' || currentView === 'forgot' ? 'active' : ''}`} 
+            className={`tab ${currentView === 'login' || currentView === 'forgot' || currentView === 'update_password' ? 'active' : ''}`} 
             onClick={() => setCurrentView('login')}
           >
             Sign In
@@ -35,6 +38,10 @@ const AuthInterface = () => {
             <LoginForm 
               onSuccess={() => setCurrentView('login')} 
               onForgotPassword={() => setCurrentView('forgot')} 
+              onFirstLogin={(email) => {
+                setLoginEmail(email);
+                setCurrentView('update_password');
+              }}
             />
           )}
           {currentView === 'signup' && (
@@ -42,6 +49,12 @@ const AuthInterface = () => {
           )}
           {currentView === 'forgot' && (
             <ForgotPasswordForm onBackToLogin={() => setCurrentView('login')} />
+          )}
+          {currentView === 'update_password' && (
+            <UpdatePasswordForm 
+              email={loginEmail} 
+              onBackToLogin={() => setCurrentView('login')} 
+            />
           )}
         </div>
       </div>
@@ -58,6 +71,7 @@ function App() {
         <Route path="/:company/dashboard" element={<Dashboard />} />
         <Route path="/:company/projects" element={<Projects />} />
         <Route path="/:company/projects/:projectId/board" element={<Board />} />
+        <Route path="/:company/users" element={<Users />} />
       </Routes>
     </BrowserRouter>
   );

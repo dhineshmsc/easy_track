@@ -8,7 +8,7 @@ const SignUpForm = ({ onSuccess }) => {
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [code, setCode] = useState('');
-  const [domain, setDomain] = useState('');
+  const [company_name, setCompany_name] = useState('');
   const [plan, setPlan] = useState('');
   
   const [emailTouched, setEmailTouched] = useState(false);
@@ -30,7 +30,7 @@ const SignUpForm = ({ onSuccess }) => {
   const resetForm = () => {
     setEmail(''); setPassword(''); setConfirmPassword('');
     setName(''); setMobile(''); setCode('');
-    setDomain(''); setPlan('');
+    setCompany_name(''); setPlan('');
     setEmailTouched(false); setPasswordTouched(false); setConfirmTouched(false);
     setNameTouched(false); setMobileTouched(false); setCodeTouched(false);
     setFormSubmitted(false); setOtpStatus('none'); setMockOtp('');
@@ -102,7 +102,7 @@ const SignUpForm = ({ onSuccess }) => {
     e.preventDefault();
     setFormSubmitted(true);
     
-    if (!name || !mobile || !email || !code || !password || !confirmPassword || !domain || !plan) {
+    if (!name || !mobile || !email || !code || !password || !confirmPassword || !company_name || !plan) {
       setNameTouched(true); setMobileTouched(true); setEmailTouched(true);
       setCodeTouched(true); setPasswordTouched(true); setConfirmTouched(true);
       toast.error("Please fill all required fields.");
@@ -124,11 +124,11 @@ const SignUpForm = ({ onSuccess }) => {
       const createResponse = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, mobile, email, code, password, domain, plan })
+        body: JSON.stringify({ name, mobile, email, code, password, company_name, plan })
       });
       if (createResponse.ok) {
         const result = await createResponse.json();
-        toast.success(`User created successfully!\nName: ${result.user.name}\nCompany: ${result.user.domain}`);
+        toast.success(`User created successfully!\nName: ${result.user.name}\nCompany: ${result.user.company_name}`);
         resetForm();
         if (onSuccess) onSuccess();
       } else {
@@ -292,12 +292,12 @@ const SignUpForm = ({ onSuccess }) => {
         <input 
           type="text" 
           placeholder="e.g. Acme Corp" 
-          value={domain}
-          onChange={(e) => setDomain(e.target.value)}
+          value={company_name}
+          onChange={(e) => setCompany_name(e.target.value)}
           onFocus={() => { setConfirmTouched(true); setPasswordTouched(true); }}
-          className={formSubmitted && !domain ? 'input-error' : ''}
+          className={formSubmitted && !company_name ? 'input-error' : ''}
         />
-        {formSubmitted && !domain && <span className="field-error">Company Name is required.</span>}
+        {formSubmitted && !company_name && <span className="field-error">Company Name is required.</span>}
       </div>
       
       <div className="input-group">

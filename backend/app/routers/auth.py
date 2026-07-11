@@ -1,7 +1,7 @@
 import datetime
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.user import EmailRequest, VerifyOTPRequest, CreateUserRequest, LoginRequest, ResetPasswordRequest
+from app.schemas.user import EmailRequest, VerifyOTPRequest, CreateUserRequest, LoginRequest, ResetPasswordRequest, UpdateFirstPasswordRequest
 from app.database import get_users_collection, get_companies_collection
 from app.utils import generate_otp, send_otp_email, verify_stored_otp
 from app.auth import hash_password, verify_password, create_access_token
@@ -82,7 +82,7 @@ async def register(req: CreateUserRequest):
         # Create company document
         companies_collection = get_companies_collection()
         company_data = {
-            "company_name": req.domain,
+            "company_name": req.company_name,
             "plan": req.plan,
             "expire_date": expire_date,
             "created_at": created_at,
@@ -127,9 +127,11 @@ async def login(req: LoginRequest):
         
     return {
         "message": "Login success", 
+        "user_id": user.get("user_id"),
         "name": user.get("name", ""),
-        "company": user.get("domain", "default"),
-        "token": access_token
+        "company": user.get("company_name", "default"),
+        "token": access_token,
+        "is_first_login": user.get("is_first_login", False)
     }
 
 
@@ -149,3 +151,25 @@ async def reset_password(req: ResetPasswordRequest):
     users_collection.update_one({"email": req.email}, {"$set": {"password": hashed_pw}})
     
     return {"message": "Password reset successfully"}
+
+@router.post("/update-first-password")
+async def update_first_password(req: UpdateFirstPasswordRequest):
+    users_collection = get_users_collection()
+    user = users_collection.find_one({"email": req.email})
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    stored_password = user.get("password", "")
+    is_valid = verify_password(req.old_password, stored_password)
+    
+    if not is_valid:
+        raise HTTPException(status_code=401, detail="Invalid current password")
+        
+    hashed_pw = hash_password(req.new_password)
+    users_collection.update_one(
+        {"email": req.email}, 
+        {"$set": {"password": hashed_pw, "is_first_login": False}}
+    )
+    
+    return {"message": "Password updated successfully"}

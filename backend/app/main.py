@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth, projects, stories, tasks
+from app.routers import auth, projects, stories, tasks, users
 
 app = FastAPI(title="Easy Track API")
 
@@ -22,6 +22,7 @@ app.include_router(auth.router, tags=["Authentication"])
 app.include_router(projects.router)
 app.include_router(stories.router)
 app.include_router(tasks.router)
+app.include_router(users.router)
 
 @app.get("/")
 def read_root():
