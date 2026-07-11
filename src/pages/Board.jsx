@@ -8,10 +8,7 @@ import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
 import { toast } from 'react-hot-toast';
 
-const darkTheme = createTheme({
-  palette: { mode: 'dark', primary: { main: '#6366f1' }, background: { default: '#0f172a', paper: '#1e293b' } },
-  typography: { fontFamily: '"Outfit", "Inter", sans-serif' },
-});
+import appleTheme from '../theme';
 
 const Board = () => {
   const { company, projectId } = useParams();
@@ -143,7 +140,7 @@ const Board = () => {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={appleTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
         <Sidebar company={company} activeMenu="Projects" />
@@ -152,7 +149,7 @@ const Board = () => {
           
           <Box sx={{ p: 4, overflowY: 'auto', flexGrow: 1 }}>
             {project && (
-              <Box sx={{ mb: 4, p: 3, bgcolor: '#1e293bd0', borderRadius: 2, borderLeft: '6px solid', borderColor: 'primary.main' }}>
+              <Box sx={{ mb: 4, p: 3, bgcolor: '#ffffff', borderRadius: 2, borderLeft: '6px solid', borderColor: 'primary.main', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <Typography variant="h4" fontWeight="bold">
                   {project.custom_id} : {project.name}
                 </Typography>

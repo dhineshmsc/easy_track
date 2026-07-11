@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import './index.css';
-import bgVideo from '../static/mp4/login.mp4';
 import LoginForm from './components/LoginForm';
 import SignUpForm from './components/SignUpForm';
 import ForgotPasswordForm from './components/ForgotPasswordForm';
@@ -15,11 +14,6 @@ const AuthInterface = () => {
 
   return (
     <div className="app-container">
-      <video autoPlay loop muted className="background-video">
-        <source src={bgVideo} type="video/mp4" />
-      </video>
-      <div className="overlay"></div>
-      
       <div className="glass-panel">
         <div className="tab-container">
           <button 

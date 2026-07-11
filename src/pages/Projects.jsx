@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Box, ThemeProvider, createTheme, CssBaseline, Typography, Button, Dialog, 
-  DialogTitle, DialogContent, DialogActions, TextField, IconButton, 
+import {
+  Box, ThemeProvider, createTheme, CssBaseline, Typography, Button, Dialog,
+  DialogTitle, DialogContent, DialogActions, TextField, IconButton,
   Paper, Grid, Divider, FormControl, InputLabel, Select, MenuItem, Tooltip
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -13,10 +13,7 @@ import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
 import { toast } from 'react-hot-toast';
 
-const darkTheme = createTheme({
-  palette: { mode: 'dark', primary: { main: '#6366f1' }, background: { default: '#0f172a', paper: '#1e293b' } },
-  typography: { fontFamily: '"Outfit", "Inter", sans-serif' },
-});
+import appleTheme from '../theme';
 
 const ConnectorArrow = () => (
   <Box sx={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.2)', mx: 1 }}>
@@ -29,11 +26,11 @@ const Projects = () => {
   const { company } = useParams();
   const navigate = useNavigate();
   const username = localStorage.getItem('username') || '';
-  
+
   const [projects, setProjects] = useState([]);
   const [storiesByProject, setStoriesByProject] = useState({});
   const [tasksByStory, setTasksByStory] = useState({});
-  
+
   // Project Modal
   const [openModal, setOpenModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
@@ -156,7 +153,7 @@ const Projects = () => {
     try {
       const url = taskModalIsEdit ? `${import.meta.env.VITE_API_URL}/tasks/${activeTaskId}` : `${import.meta.env.VITE_API_URL}/tasks/`;
       const method = taskModalIsEdit ? 'PUT' : 'POST';
-      const body = taskModalIsEdit 
+      const body = taskModalIsEdit
         ? { name: taskForm.name, description: taskForm.description, type: taskForm.type, status: taskForm.status, estimate_hours: parseFloat(taskForm.estimateHours) || 0 }
         : { story_id: activeStoryId, type: taskForm.type, name: taskForm.name, description: taskForm.description, estimate_hours: parseFloat(taskForm.estimateHours) || 0 };
 
@@ -185,16 +182,16 @@ const Projects = () => {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={appleTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
         <Sidebar company={company} activeMenu="Projects" />
         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
           <TopNav company={company} username={username} />
           <Box sx={{ p: 4, overflowY: 'auto', flexGrow: 1, overflowX: 'auto' }}>
-            
+
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4, minWidth: 1000 }}>
-              <Typography variant="h4" fontWeight="bold">Jira Hierarchy Dashboard</Typography>
+              <Typography variant="h4" fontWeight="bold">Project Dashboard</Typography>
               <Button variant="contained" startIcon={<AddIcon />} onClick={() => {
                 setProjectForm({ name: '', description: '' });
                 setEditModal(false);
@@ -208,32 +205,33 @@ const Projects = () => {
               {projects.length === 0 && (
                 <Typography color="text.secondary">No projects found. Create one to get started.</Typography>
               )}
-              
+
               {projects.map((proj) => (
-                <Box key={proj._id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, bgcolor: 'rgba(99, 102, 241, 0.05)', p: 2.5, borderRadius: 3, border: '1px solid rgba(99, 102, 241, 0.2)' }}>
-                  
+                <Box key={proj._id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, bgcolor: 'rgba(99, 102, 241, 0.05)', p: 1.5, borderRadius: 3, border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+
                   {/* PROJECT NODE */}
-                  <Paper elevation={4} sx={{ 
-                    minWidth: 320, width: 320, p: 3, 
+                  <Paper elevation={4} sx={{
+                    minWidth: 350, width: 350, p: 2, resize: 'horizontal', overflow: 'hidden',
                     borderLeft: '4px solid #6366f1', bgcolor: 'background.paper', borderRadius: 2
                   }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="caption" sx={{ bgcolor: 'rgba(99,102,241,0.2)', color: '#a5b4fc', px: 1, borderRadius: 1 }}>
-                        {proj.custom_id}
+                      <Typography variant="caption" sx={{ bgcolor: 'rgba(99,102,241,0.2)', color: '#a5b4fc', px: 1, borderRadius: 1, fontSize: '0.85rem' }}>
+                        Project : {proj.custom_id}
                       </Typography>
-                      <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton size="small" onClick={() => {
-                           setProjectForm({ name: proj.name, description: proj.description || '' });
-                           setEditProjectId(proj._id);
-                           setEditModal(true);
-                        }}><EditIcon sx={{ fontSize: 16 }}/></IconButton>
+                          setProjectForm({ name: proj.name, description: proj.description || '' });
+                          setEditProjectId(proj._id);
+                          setEditModal(true);
+                        }}><EditIcon sx={{ fontSize: 18 }} /></IconButton>
                         <IconButton size="small" color="error" onClick={() => handleDeleteProject(proj._id)}>
-                           <DeleteIcon sx={{ fontSize: 16 }}/>
+                          <DeleteIcon sx={{ fontSize: 18 }} />
                         </IconButton>
                       </Box>
                     </Box>
-                    <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>{proj.name}</Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>{proj.description}</Typography>
+                    <Typography variant="h5" fontWeight="bold">{proj.name}</Typography>
+                    <Divider sx={{ my: 1.5, borderColor: 'rgba(0,0,0,0.08)' }} />
+                    <Typography variant="body1" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>{proj.description}</Typography>
                     <Button size="small" variant="outlined" startIcon={<AddIcon />} fullWidth onClick={() => {
                       setActiveProjectId(proj._id);
                       setStoryForm({ name: '', description: '' });
@@ -245,31 +243,32 @@ const Projects = () => {
                   {/* STORIES COLUMN */}
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, flexGrow: 1 }}>
                     {(storiesByProject[proj._id] || []).map(story => (
-                      <Box key={story._id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, bgcolor: 'rgba(16, 185, 129, 0.05)', p: 2, borderRadius: 3, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                        
+                      <Box key={story._id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, bgcolor: 'rgba(16, 185, 129, 0.05)', p: 1, borderRadius: 3, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+
                         {/* STORY NODE */}
-                        <Paper elevation={3} sx={{ 
-                          minWidth: 300, width: 300, p: 2, 
+                        <Paper elevation={3} sx={{
+                          minWidth: 350, width: 350, p: 1.5, resize: 'horizontal', overflow: 'hidden',
                           borderLeft: '4px solid #10b981', bgcolor: 'background.default', borderRadius: 2
                         }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant="caption" sx={{ bgcolor: 'rgba(16,185,129,0.2)', color: '#6ee7b7', px: 1, borderRadius: 1 }}>
-                              {story.custom_id}
+                            <Typography variant="caption" sx={{ bgcolor: 'rgba(16,185,129,0.2)', color: '#6ee7b7', px: 1, borderRadius: 1, fontSize: '0.85rem' }}>
+                              Story : {story.custom_id}
                             </Typography>
-                            <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <IconButton size="small" onClick={() => {
                                 setStoryForm({ name: story.name, description: story.description || '' });
                                 setActiveStoryId(story._id);
                                 setStoryModalIsEdit(true);
                                 setStoryModalOpen(true);
-                              }}><EditIcon sx={{ fontSize: 16 }}/></IconButton>
+                              }}><EditIcon sx={{ fontSize: 18 }} /></IconButton>
                               <IconButton size="small" color="error" onClick={() => handleDeleteStory(story._id)}>
-                                 <DeleteIcon sx={{ fontSize: 16 }}/>
+                                <DeleteIcon sx={{ fontSize: 18 }} />
                               </IconButton>
                             </Box>
                           </Box>
-                          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>{story.name}</Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>{story.description}</Typography>
+                          <Typography variant="h6" fontWeight="bold">{story.name}</Typography>
+                          <Divider sx={{ my: 1.5, borderColor: 'rgba(0,0,0,0.08)' }} />
+                          <Typography variant="body1" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>{story.description}</Typography>
                           <Button size="small" variant="text" sx={{ color: '#10b981' }} startIcon={<AddIcon />} fullWidth onClick={() => {
                             setActiveStoryId(story._id);
                             setTaskForm({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0 });
@@ -279,42 +278,50 @@ const Projects = () => {
                         </Paper>
 
                         {/* TASKS COLUMN */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, bgcolor: 'rgba(255, 255, 255, 0.02)', p: 2, borderRadius: 2, border: '1px dashed rgba(255,255,255,0.1)' }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, bgcolor: 'rgba(0, 0, 0, 0.02)', p: 1, borderRadius: 2, border: '1px dashed rgba(0,0,0,0.1)' }}>
                           {(tasksByStory[story._id] || []).map(task => (
-                            <Paper key={task._id} elevation={2} sx={{ 
-                              minWidth: 280, width: 280, p: 2, 
-                              borderLeft: `4px solid ${task.type === 'Bug' ? '#ef4444' : '#3b82f6'}`, 
-                              bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 2
+                            <Paper key={task._id} elevation={2} sx={{
+                              minWidth: 350, width: 350, p: 1.5, resize: 'horizontal', overflow: 'hidden',
+                              borderLeft: `4px solid ${task.type === 'Bug' ? '#ef4444' : '#3b82f6'}`,
+                              bgcolor: '#ffffff', borderRadius: 2
                             }}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                 <Box sx={{ display: 'flex', gap: 1 }}>
-                                  <Typography variant="caption" sx={{ bgcolor: task.type === 'Bug' ? 'rgba(239,68,68,0.2)' : 'rgba(59,130,246,0.2)', color: task.type === 'Bug' ? '#fca5a5' : '#93c5fd', px: 1, borderRadius: 1 }}>
-                                    {task.custom_id}
+                                  <Typography variant="caption" sx={{ bgcolor: task.type === 'Bug' ? 'rgba(239,68,68,0.2)' : 'rgba(59,130,246,0.2)', color: task.type === 'Bug' ? '#fca5a5' : '#93c5fd', px: 1, borderRadius: 1, fontSize: '0.85rem' }}>
+                                    {task.type} : {task.custom_id}
                                   </Typography>
-                                  <Typography variant="caption" sx={{ bgcolor: 'rgba(255,255,255,0.1)', px: 1, borderRadius: 1 }}>
+                                  <Typography variant="caption" sx={{ bgcolor: 'rgba(0,0,0,0.05)', px: 1, borderRadius: 1, fontSize: '0.85rem' }}>
                                     {task.status}
                                   </Typography>
                                 </Box>
-                                <Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  {task.estimate_hours > 0 && (
+                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold', letterSpacing: 1, mr: 1, bgcolor: 'rgba(0,0,0,0.05)', px: 1, borderRadius: 1 }}>
+                                      {task.estimate_hours}h
+                                    </Typography>
+                                  )}
                                   <IconButton size="small" onClick={() => {
                                     setTaskForm({ type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0 });
                                     setActiveTaskId(task._id);
                                     setTaskModalIsEdit(true);
                                     setTaskModalOpen(true);
-                                  }}><EditIcon sx={{ fontSize: 14 }}/></IconButton>
+                                  }}><EditIcon sx={{ fontSize: 18 }} /></IconButton>
                                   <IconButton size="small" color="error" onClick={() => handleDeleteTask(task._id)}>
-                                     <DeleteIcon sx={{ fontSize: 14 }}/>
-                                 </IconButton>
+                                    <DeleteIcon sx={{ fontSize: 18 }} />
+                                  </IconButton>
                                 </Box>
                               </Box>
-                              <Typography variant="body2" fontWeight="bold" sx={{ mb: 0.5 }}>{task.name}</Typography>
-                              {task.estimate_hours > 0 && (
-                                <Typography variant="caption" color="text.secondary" display="block">Estimate: {task.estimate_hours}h</Typography>
+                              <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: '1.1rem' }}>{task.name}</Typography>
+                              {task.description && (
+                                <>
+                                  <Divider sx={{ my: 1.5, borderColor: 'rgba(0,0,0,0.08)' }} />
+                                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>{task.description}</Typography>
+                                </>
                               )}
                             </Paper>
                           ))}
                         </Box>
-                        
+
                       </Box>
                     ))}
                   </Box>
@@ -328,13 +335,13 @@ const Projects = () => {
       </Box>
 
       {/* --- MODALS --- */}
-      
+
       {/* Project Modal */}
       <Dialog open={openModal || editModal} onClose={() => { setOpenModal(false); setEditModal(false); }}>
         <DialogTitle>{editModal ? 'Edit Project' : 'Create Project'}</DialogTitle>
         <DialogContent sx={{ minWidth: 400 }}>
-          <TextField autoFocus margin="dense" label="Project Name" fullWidth value={projectForm.name} onChange={e => setProjectForm({...projectForm, name: e.target.value})} />
-          <TextField margin="dense" label="Description" fullWidth multiline rows={3} value={projectForm.description} onChange={e => setProjectForm({...projectForm, description: e.target.value})} />
+          <TextField autoFocus margin="dense" label="Project Name" fullWidth value={projectForm.name} onChange={e => setProjectForm({ ...projectForm, name: e.target.value })} />
+          <TextField margin="dense" label="Description" fullWidth multiline rows={3} value={projectForm.description} onChange={e => setProjectForm({ ...projectForm, description: e.target.value })} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => { setOpenModal(false); setEditModal(false); }}>Cancel</Button>
@@ -346,8 +353,8 @@ const Projects = () => {
       <Dialog open={storyModalOpen} onClose={() => setStoryModalOpen(false)}>
         <DialogTitle>{storyModalIsEdit ? 'Edit Story' : 'Create Story'}</DialogTitle>
         <DialogContent sx={{ minWidth: 400 }}>
-          <TextField autoFocus margin="dense" label="Story Name" fullWidth value={storyForm.name} onChange={e => setStoryForm({...storyForm, name: e.target.value})} />
-          <TextField margin="dense" label="Description" fullWidth multiline rows={3} value={storyForm.description} onChange={e => setStoryForm({...storyForm, description: e.target.value})} />
+          <TextField autoFocus margin="dense" label="Story Name" fullWidth value={storyForm.name} onChange={e => setStoryForm({ ...storyForm, name: e.target.value })} />
+          <TextField margin="dense" label="Description" fullWidth multiline rows={3} value={storyForm.description} onChange={e => setStoryForm({ ...storyForm, description: e.target.value })} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setStoryModalOpen(false)}>Cancel</Button>
@@ -362,7 +369,7 @@ const Projects = () => {
           <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
             <FormControl fullWidth margin="dense">
               <InputLabel>Type</InputLabel>
-              <Select value={taskForm.type} label="Type" onChange={e => setTaskForm({...taskForm, type: e.target.value})}>
+              <Select value={taskForm.type} label="Type" onChange={e => setTaskForm({ ...taskForm, type: e.target.value })}>
                 <MenuItem value="Task">Task</MenuItem>
                 <MenuItem value="Bug">Bug</MenuItem>
               </Select>
@@ -370,7 +377,7 @@ const Projects = () => {
             {taskModalIsEdit && (
               <FormControl fullWidth margin="dense">
                 <InputLabel>Status</InputLabel>
-                <Select value={taskForm.status} label="Status" onChange={e => setTaskForm({...taskForm, status: e.target.value})}>
+                <Select value={taskForm.status} label="Status" onChange={e => setTaskForm({ ...taskForm, status: e.target.value })}>
                   <MenuItem value="To Do">To Do</MenuItem>
                   <MenuItem value="In Progress">In Progress</MenuItem>
                   <MenuItem value="Done">Done</MenuItem>
@@ -378,9 +385,9 @@ const Projects = () => {
               </FormControl>
             )}
           </Box>
-          <TextField margin="dense" label="Name" fullWidth value={taskForm.name} onChange={e => setTaskForm({...taskForm, name: e.target.value})} />
-          <TextField margin="dense" label="Estimated Hours" type="number" fullWidth value={taskForm.estimateHours} onChange={e => setTaskForm({...taskForm, estimateHours: e.target.value})} />
-          <TextField margin="dense" label="Description" fullWidth multiline rows={3} value={taskForm.description} onChange={e => setTaskForm({...taskForm, description: e.target.value})} />
+          <TextField margin="dense" label="Name" fullWidth value={taskForm.name} onChange={e => setTaskForm({ ...taskForm, name: e.target.value })} />
+          <TextField margin="dense" label="Estimated Hours" type="number" fullWidth value={taskForm.estimateHours} onChange={e => setTaskForm({ ...taskForm, estimateHours: e.target.value })} />
+          <TextField margin="dense" label="Description" fullWidth multiline rows={3} value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setTaskModalOpen(false)}>Cancel</Button>
