@@ -11,6 +11,8 @@ import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined';
 import BugReportOutlinedIcon from '@mui/icons-material/BugReportOutlined';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
@@ -35,6 +37,16 @@ const Projects = () => {
   const [editingTaskValue, setEditingTaskValue] = useState("");
   const [editingStoryId, setEditingStoryId] = useState(null);
   const [editingStoryValue, setEditingStoryValue] = useState("");
+  const [collapsedProjects, setCollapsedProjects] = useState({});
+  const [collapsedStories, setCollapsedStories] = useState({});
+
+  const toggleProjectCollapse = (id) => {
+    setCollapsedProjects(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const toggleStoryCollapse = (id) => {
+    setCollapsedStories(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
     <ThemeProvider theme={appleTheme}>
@@ -78,7 +90,8 @@ const Projects = () => {
           {/* BOARD ROWS */}
           <Box sx={{ flexGrow: 1, overflowY: 'auto', overflowX: 'hidden' }}>
             {projects.map((proj, projIdx) => {
-              const stories = storiesByProject[proj._id] || [];
+              const actualStories = storiesByProject[proj._id] || [];
+              const stories = collapsedProjects[proj._id] ? [] : actualStories;
               const rowCount = Math.max(stories.length, 1);
               return (
                 <Box key={proj._id} sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: projIdx < projects.length - 1 ? '2px solid #e2e8f0' : 'none' }}>
@@ -90,10 +103,15 @@ const Projects = () => {
                       transition: 'all 0.15s',
                       '&:hover': { boxShadow: '0 4px 12px rgba(99,102,241,0.12)', borderColor: '#a5b4fc' }
                     }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.8 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#6366f1', fontSize: '0.7rem', bgcolor: '#ede9fe', px: 0.8, py: 0.2, borderRadius: 4 }}>
-                          {proj.custom_id}
-                        </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                          <IconButton size="small" sx={{ p: '2px', color: '#6366f1' }} onClick={(e) => { e.stopPropagation(); toggleProjectCollapse(proj._id); }}>
+                            {collapsedProjects[proj._id] ? <ChevronRightIcon sx={{ fontSize: 16 }} /> : <ExpandMoreIcon sx={{ fontSize: 16 }} />}
+                          </IconButton>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#6366f1', fontSize: '0.7rem', bgcolor: '#ede9fe', px: 0.8, py: 0.2, borderRadius: 4 }}>
+                            {proj.custom_id}
+                          </Typography>
+                        </Box>
                         <Box sx={{ display: 'flex' }}>
                           <IconButton size="small" sx={{ p: 0.3 }} onClick={() => { setProjectForm({ name: proj.name, description: proj.description || '' }); setEditModal(true); }}>
                             <EditIcon sx={{ fontSize: 13, color: '#94a3b8' }} />
@@ -110,13 +128,39 @@ const Projects = () => {
                         </Typography>
                       )}
                       <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', mt: 1, display: 'block' }}>
-                        {stories.length} {stories.length === 1 ? 'story' : 'stories'}
+                        {actualStories.length} {actualStories.length === 1 ? 'story' : 'stories'}
                       </Typography>
                     </Paper>
                   </Box>
 
                   {/* STORY + TASK ROWS */}
-                  {stories.length === 0 ? (
+                  {collapsedProjects[proj._id] ? (
+                    <>
+                      <Box 
+                        onClick={() => toggleProjectCollapse(proj._id)}
+                        sx={{ 
+                          borderRight: '1px solid #e2e8f0', p: 1.5, minHeight: 64, 
+                          display: 'flex', alignItems: 'center', bgcolor: '#f8fafc',
+                          cursor: 'pointer', transition: '0.15s',
+                          '&:hover': { bgcolor: '#f1f5f9' },
+                          borderBottom: '1px dashed #cbd5e1'
+                        }}
+                      >
+                        <Typography variant="caption" sx={{ color: '#94a3b8', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <ChevronRightIcon sx={{ fontSize: 14 }} /> Stories collapsed ({actualStories.length})
+                        </Typography>
+                      </Box>
+                      <Box 
+                        onClick={() => toggleProjectCollapse(proj._id)}
+                        sx={{ 
+                          p: 1.5, minHeight: 64, bgcolor: '#f8fafc',
+                          cursor: 'pointer', transition: '0.15s',
+                          '&:hover': { bgcolor: '#f1f5f9' },
+                          borderBottom: '1px dashed #cbd5e1'
+                        }} 
+                      />
+                    </>
+                  ) : stories.length === 0 ? (
                     <>
                       <Box sx={{ borderRight: '1px solid #e2e8f0', p: 1.5, minHeight: 64, display: 'flex', alignItems: 'center' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, px: 0.5, py: 0.6, borderRadius: '6px', cursor: 'pointer', color: '#94a3b8', transition: '0.15s', '&:hover': { bgcolor: '#f0fdf4', color: '#10b981' } }} onClick={() => { setActiveProjectId(proj._id); setStoryForm({ name: '', description: '', estimate_hours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' }); setStoryModalIsEdit(false); setStoryModalOpen(true); }}>
@@ -150,7 +194,26 @@ const Projects = () => {
                               setStoryModalOpen(true);
                             }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 1.5 }}>
-                                <BookmarkBorderOutlinedIcon sx={{ fontSize: 16, color: '#10b981', flexShrink: 0 }} />
+                                <Box 
+                                   onClick={(e) => {
+                                     e.preventDefault();
+                                     e.stopPropagation();
+                                     toggleStoryCollapse(story._id);
+                                   }}
+                                   sx={{
+                                     display: 'flex',
+                                     alignItems: 'center',
+                                     cursor: 'pointer',
+                                     p: '2px 4px',
+                                     borderRadius: '4px',
+                                     bgcolor: '#f1f5f9',
+                                     '&:hover': { bgcolor: '#e2e8f0' },
+                                     mr: 0.5
+                                   }}
+                                 >
+                                   {collapsedStories[story._id] ? <ChevronRightIcon sx={{ fontSize: 16, color: '#10b981' }} /> : <ExpandMoreIcon sx={{ fontSize: 16, color: '#10b981' }} />}
+                                   <BookmarkBorderOutlinedIcon sx={{ fontSize: 16, color: '#10b981', ml: '2px', flexShrink: 0 }} />
+                                 </Box>
                                 <Typography sx={{ fontWeight: 700, color: '#10b981', fontSize: '0.65rem', bgcolor: '#d1fae5', px: 0.6, py: 0.1, borderRadius: '3px', flexShrink: 0 }}>
                                   {story.custom_id}
                                 </Typography>
@@ -281,142 +344,160 @@ const Projects = () => {
 
                           {/* TASK CARDS */}
                           <Box sx={{ borderTop: sIdx > 0 ? '1px solid #f1f5f9' : 'none', p: '6px 10px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                            {tasks.map(task => {
-                              const sc = statusColor(task.status);
-                              const isBug = task.type === 'Bug';
-                              return (
-                                <Paper key={task._id} elevation={0} sx={{
-                                  px: '8px', py: '7px', borderRadius: '6px',
-                                  border: '1px solid #e2e8f0', bgcolor: '#fff',
-                                  borderLeft: `3px solid ${isBug ? '#fca5a5' : '#facc15'}`,
-                                  transition: 'all 0.15s',
-                                  cursor: 'pointer',
-                                  '&:hover': { boxShadow: '0 2px 8px rgba(234,179,8,0.1)', borderColor: isBug ? '#fca5a5' : '#facc15' }
+                            {collapsedStories[story._id] ? (
+                              <Box 
+                                onClick={() => toggleStoryCollapse(story._id)}
+                                sx={{
+                                  py: 1.5, px: 2, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  bgcolor: '#f8fafc', borderRadius: '6px', border: '1px dashed #cbd5e1',
+                                  cursor: 'pointer', transition: '0.15s',
+                                  '&:hover': { bgcolor: '#f1f5f9' }
+                                }}
+                              >
+                                <Typography variant="caption" sx={{ color: '#94a3b8', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <ChevronRightIcon sx={{ fontSize: 14 }} /> Tasks collapsed ({tasks.length})
+                                </Typography>
+                              </Box>
+                            ) : (
+                              <>
+                                {tasks.map(task => {
+                                  const sc = statusColor(task.status);
+                                  const isBug = task.type === 'Bug';
+                                  return (
+                                    <Paper key={task._id} elevation={0} sx={{
+                                      px: '8px', py: '7px', borderRadius: '6px',
+                                      border: '1px solid #e2e8f0', bgcolor: '#fff',
+                                      borderLeft: `3px solid ${isBug ? '#fca5a5' : '#facc15'}`,
+                                      transition: 'all 0.15s',
+                                      cursor: 'pointer',
+                                      '&:hover': { boxShadow: '0 2px 8px rgba(234,179,8,0.1)', borderColor: isBug ? '#fca5a5' : '#facc15' }
+                                    }} onClick={() => {
+                                      setTaskForm({ type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium' });
+                                      setActiveTaskId(task._id);
+                                      setTaskModalIsEdit(true);
+                                      setTaskModalOpen(true);
+                                    }}>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        {isBug ? <BugReportOutlinedIcon sx={{ fontSize: 16, color: '#ef4444', flexShrink: 0 }} /> : <TaskAltOutlinedIcon sx={{ fontSize: 16, color: '#eab308', flexShrink: 0 }} />}
+                                        <Typography sx={{ fontWeight: 700, color: isBug ? '#ef4444' : '#eab308', fontSize: '0.65rem', bgcolor: isBug ? '#fef2f2' : '#fef9c3', px: 0.6, py: 0.1, borderRadius: '3px', flexShrink: 0 }}>
+                                          {task.custom_id}
+                                        </Typography>
+                                        <Box sx={{ bgcolor: sc.bg, color: sc.color, fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', flexShrink: 0 }}>{task.status}</Box>
+                                        {task.estimate_hours > 0 && (
+                                          <Typography sx={{ color: '#94a3b8', fontSize: '0.6rem', fontWeight: 600, flexShrink: 0 }}>{task.estimate_hours}h</Typography>
+                                        )}
+                                        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
+                                          <IconButton size="small" sx={{ p: 0.2 }} onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteTask(task._id);
+                                          }}>
+                                            <DeleteIcon sx={{ fontSize: 16, color: '#fca5a5' }} />
+                                          </IconButton>
+                                        </Box>
+                                      </Box>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: '2px' }}>
+                                        {editingTaskId === task._id ? (
+                                          <Box 
+                                            onClick={(e) => e.stopPropagation()}
+                                            sx={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden' }}
+                                          >
+                                            <TextField
+                                              value={editingTaskValue}
+                                              onChange={e => setEditingTaskValue(e.target.value)}
+                                              onKeyDown={e => {
+                                                if (e.key === 'Enter') {
+                                                  if (editingTaskValue.trim()) {
+                                                    handlePartialUpdateTask(task._id, { name: editingTaskValue.trim() });
+                                                  }
+                                                  setEditingTaskId(null);
+                                                } else if (e.key === 'Escape') {
+                                                  setEditingTaskId(null);
+                                                }
+                                              }}
+                                              onBlur={() => {
+                                                setTimeout(() => {
+                                                  setEditingTaskId(null);
+                                                }, 200);
+                                              }}
+                                              autoFocus
+                                              size="small"
+                                              variant="standard"
+                                              inputProps={{ style: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a', padding: 0 } }}
+                                              sx={{ width: '120px' }}
+                                            />
+                                            <IconButton
+                                              size="small"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (editingTaskValue.trim()) {
+                                                  handlePartialUpdateTask(task._id, { name: editingTaskValue.trim() });
+                                                }
+                                                setEditingTaskId(null);
+                                              }}
+                                              sx={{ p: '2px', color: '#10b981' }}
+                                            >
+                                              <CheckIcon sx={{ fontSize: 16 }} />
+                                            </IconButton>
+                                            <IconButton
+                                              size="small"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setEditingTaskId(null);
+                                              }}
+                                              sx={{ p: '2px', color: '#ef4444' }}
+                                            >
+                                              <CloseIcon sx={{ fontSize: 16 }} />
+                                            </IconButton>
+                                          </Box>
+                                        ) : (
+                                          <Box
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setEditingTaskId(task._id);
+                                              setEditingTaskValue(task.name);
+                                            }}
+                                            sx={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              cursor: 'pointer',
+                                              overflow: 'hidden',
+                                              '&:hover .task-title-edit-icon': { opacity: 1 }
+                                            }}
+                                          >
+                                            <Typography sx={{ fontWeight: 600, color: '#0f172a', fontSize: '0.88rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5 }}>
+                                              {task.name}
+                                            </Typography>
+                                            <EditIcon className="task-title-edit-icon" sx={{ fontSize: 16, color: '#6366f1', opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }} />
+                                          </Box>
+                                        )}
+                                        {task.assigned_user && (
+                                          <Tooltip title={users.find(u => (u._id || u.user_id) === task.assigned_user)?.name || 'Unassigned'}>
+                                            <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: getAvatarColor(task.assigned_user), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                                              {getUserInitials(task.assigned_user, users)}
+                                            </Box>
+                                          </Tooltip>
+                                        )}
+                                      </Box>
+                                    </Paper>
+                                  );
+                                })}
+                                {/* Add Task button */}
+                                <Box sx={{
+                                  display: 'flex', alignItems: 'center', gap: 0.6, px: 0.5, py: 0.8, borderRadius: '6px',
+                                  cursor: 'pointer', color: '#94a3b8', transition: '0.15s',
+                                  '&:hover': { bgcolor: '#eff6ff', color: '#3b82f6' }
                                 }} onClick={() => {
-                                  setTaskForm({ type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium' });
-                                  setActiveTaskId(task._id);
-                                  setTaskModalIsEdit(true);
+                                  setActiveProjectId(proj._id);
+                                  setActiveStoryId(story._id);
+                                  setTaskForm({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' });
+                                  setTaskModalIsEdit(false);
                                   setTaskModalOpen(true);
                                 }}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    {isBug ? <BugReportOutlinedIcon sx={{ fontSize: 16, color: '#ef4444', flexShrink: 0 }} /> : <TaskAltOutlinedIcon sx={{ fontSize: 16, color: '#eab308', flexShrink: 0 }} />}
-                                    <Typography sx={{ fontWeight: 700, color: isBug ? '#ef4444' : '#eab308', fontSize: '0.65rem', bgcolor: isBug ? '#fef2f2' : '#fef9c3', px: 0.6, py: 0.1, borderRadius: '3px', flexShrink: 0 }}>
-                                      {task.custom_id}
-                                    </Typography>
-                                    <Box sx={{ bgcolor: sc.bg, color: sc.color, fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', flexShrink: 0 }}>{task.status}</Box>
-                                    {task.estimate_hours > 0 && (
-                                      <Typography sx={{ color: '#94a3b8', fontSize: '0.6rem', fontWeight: 600, flexShrink: 0 }}>{task.estimate_hours}h</Typography>
-                                    )}
-                                    <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
-                                      <IconButton size="small" sx={{ p: 0.2 }} onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteTask(task._id);
-                                      }}>
-                                        <DeleteIcon sx={{ fontSize: 16, color: '#fca5a5' }} />
-                                      </IconButton>
-                                    </Box>
-                                  </Box>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: '2px' }}>
-                                    {editingTaskId === task._id ? (
-                                      <Box 
-                                        onClick={(e) => e.stopPropagation()}
-                                        sx={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden' }}
-                                      >
-                                        <TextField
-                                          value={editingTaskValue}
-                                          onChange={e => setEditingTaskValue(e.target.value)}
-                                          onKeyDown={e => {
-                                            if (e.key === 'Enter') {
-                                              if (editingTaskValue.trim()) {
-                                                handlePartialUpdateTask(task._id, { name: editingTaskValue.trim() });
-                                              }
-                                              setEditingTaskId(null);
-                                            } else if (e.key === 'Escape') {
-                                              setEditingTaskId(null);
-                                            }
-                                          }}
-                                          onBlur={() => {
-                                            setTimeout(() => {
-                                              setEditingTaskId(null);
-                                            }, 200);
-                                          }}
-                                          autoFocus
-                                          size="small"
-                                          variant="standard"
-                                          inputProps={{ style: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a', padding: 0 } }}
-                                          sx={{ width: '120px' }}
-                                        />
-                                        <IconButton
-                                          size="small"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (editingTaskValue.trim()) {
-                                              handlePartialUpdateTask(task._id, { name: editingTaskValue.trim() });
-                                            }
-                                            setEditingTaskId(null);
-                                          }}
-                                          sx={{ p: '2px', color: '#10b981' }}
-                                        >
-                                          <CheckIcon sx={{ fontSize: 16 }} />
-                                        </IconButton>
-                                        <IconButton
-                                          size="small"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditingTaskId(null);
-                                          }}
-                                          sx={{ p: '2px', color: '#ef4444' }}
-                                        >
-                                          <CloseIcon sx={{ fontSize: 16 }} />
-                                        </IconButton>
-                                      </Box>
-                                    ) : (
-                                      <Box
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setEditingTaskId(task._id);
-                                          setEditingTaskValue(task.name);
-                                        }}
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          cursor: 'pointer',
-                                          overflow: 'hidden',
-                                          '&:hover .task-title-edit-icon': { opacity: 1 }
-                                        }}
-                                      >
-                                        <Typography sx={{ fontWeight: 600, color: '#0f172a', fontSize: '0.88rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5 }}>
-                                          {task.name}
-                                        </Typography>
-                                        <EditIcon className="task-title-edit-icon" sx={{ fontSize: 16, color: '#6366f1', opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }} />
-                                      </Box>
-                                    )}
-                                    {task.assigned_user && (
-                                      <Tooltip title={users.find(u => (u._id || u.user_id) === task.assigned_user)?.name || 'Unassigned'}>
-                                        <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: getAvatarColor(task.assigned_user), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-                                          {getUserInitials(task.assigned_user, users)}
-                                        </Box>
-                                      </Tooltip>
-                                    )}
-                                  </Box>
-                                </Paper>
-                              );
-                            })}
-                            {/* Add Task button */}
-                            <Box sx={{
-                              display: 'flex', alignItems: 'center', gap: 0.6, px: 0.5, py: 0.8, borderRadius: '6px',
-                              cursor: 'pointer', color: '#94a3b8', transition: '0.15s',
-                              '&:hover': { bgcolor: '#eff6ff', color: '#3b82f6' }
-                            }} onClick={() => {
-                              setActiveProjectId(proj._id);
-                              setActiveStoryId(story._id);
-                              setTaskForm({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' });
-                              setTaskModalIsEdit(false);
-                              setTaskModalOpen(true);
-                            }}>
-                              <AddIcon sx={{ fontSize: 14 }} />
-                              <Typography variant="caption" fontWeight="600" sx={{ fontSize: '0.75rem' }}>Add Task / Bug</Typography>
-                            </Box>
+                                  <AddIcon sx={{ fontSize: 14 }} />
+                                  <Typography variant="caption" fontWeight="600" sx={{ fontSize: '0.75rem' }}>Add Task / Bug</Typography>
+                                </Box>
+                              </>
+                            )}
                           </Box>
                         </React.Fragment>
                       );
