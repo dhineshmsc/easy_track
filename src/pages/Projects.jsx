@@ -137,7 +137,7 @@ const Projects = () => {
                           <Box sx={{ borderRight: '1px solid #e2e8f0', borderTop: sIdx > 0 ? '1px solid #f1f5f9' : 'none', p: 1.5 }}>
                             <Paper elevation={0} sx={{
                               pt: '10px', pb: '48px', px: '16px', borderRadius: '8px',
-                              minHeight: '200px',
+                              minHeight: '200px', position: 'relative',
                               border: '1px solid #e2e8f0', bgcolor: '#fff',
                               borderLeft: '4px solid #10b981',
                               transition: 'all 0.15s',
@@ -268,8 +268,8 @@ const Projects = () => {
                                   {story.description}
                                 </Typography>
                               )}
-                              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', mt: 2, display: 'block' }}>
-                                {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} · {totalTaskHours}h total
+                              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', position: 'absolute', bottom: '12px', left: '16px' }}>
+                                Task : {tasks.length} , Hours : {totalTaskHours}
                               </Typography>
                             </Paper>
                             {/* Add Story button */}
