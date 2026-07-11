@@ -30,6 +30,7 @@ const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [storiesByProject, setStoriesByProject] = useState({});
   const [tasksByStory, setTasksByStory] = useState({});
+  const [users, setUsers] = useState([]);
 
   // Project Modal
   const [openModal, setOpenModal] = useState(false);
@@ -42,13 +43,13 @@ const Projects = () => {
   const [storyModalIsEdit, setStoryModalIsEdit] = useState(false);
   const [activeStoryId, setActiveStoryId] = useState(null);
   const [activeProjectId, setActiveProjectId] = useState(null);
-  const [storyForm, setStoryForm] = useState({ name: '', description: '' });
+  const [storyForm, setStoryForm] = useState({ name: '', description: '', estimate_hours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' });
 
   // Task Modal
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [taskModalIsEdit, setTaskModalIsEdit] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState(null);
-  const [taskForm, setTaskForm] = useState({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0 });
+  const [taskForm, setTaskForm] = useState({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' });
 
   const fetchAllData = async () => {
     try {
@@ -56,6 +57,11 @@ const Projects = () => {
       if (!pRes.ok) return;
       const projectsData = await pRes.json();
       setProjects(projectsData);
+
+      const uRes = await fetch(`${import.meta.env.VITE_API_URL}/users?company_name=${company}`);
+      if (uRes.ok) {
+        setUsers(await uRes.json());
+      }
 
       const sMap = {};
       const tMap = {};
@@ -122,7 +128,16 @@ const Projects = () => {
     try {
       const url = storyModalIsEdit ? `${import.meta.env.VITE_API_URL}/stories/${activeStoryId}` : `${import.meta.env.VITE_API_URL}/stories/`;
       const method = storyModalIsEdit ? 'PUT' : 'POST';
-      const body = storyModalIsEdit ? { ...storyForm } : { ...storyForm, project_id: activeProjectId };
+      const baseBody = {
+        name: storyForm.name,
+        description: storyForm.description,
+        estimate_hours: parseFloat(storyForm.estimate_hours) || 0,
+        assigned_user: storyForm.assigned_user || null,
+        reporter: storyForm.reporter || null,
+        end_date: storyForm.end_date || null,
+        priority: storyForm.priority || 'Medium'
+      };
+      const body = storyModalIsEdit ? { ...baseBody } : { ...baseBody, project_id: activeProjectId };
 
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (res.ok) {
@@ -153,9 +168,21 @@ const Projects = () => {
     try {
       const url = taskModalIsEdit ? `${import.meta.env.VITE_API_URL}/tasks/${activeTaskId}` : `${import.meta.env.VITE_API_URL}/tasks/`;
       const method = taskModalIsEdit ? 'PUT' : 'POST';
+      const baseBody = {
+        name: taskForm.name,
+        description: taskForm.description,
+        type: taskForm.type,
+        estimate_hours: parseFloat(taskForm.estimateHours) || 0,
+        assigned_user: taskForm.assigned_user || null,
+        reporter: taskForm.reporter || null,
+        end_date: taskForm.end_date || null,
+        priority: taskForm.priority || 'Medium'
+      };
+      if (taskModalIsEdit) baseBody.status = taskForm.status;
+
       const body = taskModalIsEdit
-        ? { name: taskForm.name, description: taskForm.description, type: taskForm.type, status: taskForm.status, estimate_hours: parseFloat(taskForm.estimateHours) || 0 }
-        : { story_id: activeStoryId, type: taskForm.type, name: taskForm.name, description: taskForm.description, estimate_hours: parseFloat(taskForm.estimateHours) || 0 };
+        ? { ...baseBody }
+        : { ...baseBody, story_id: activeStoryId };
 
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (res.ok) {
@@ -234,7 +261,7 @@ const Projects = () => {
                     <Typography variant="body1" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>{proj.description}</Typography>
                     <Button size="small" variant="outlined" startIcon={<AddIcon />} fullWidth onClick={() => {
                       setActiveProjectId(proj._id);
-                      setStoryForm({ name: '', description: '' });
+                      setStoryForm({ name: '', description: '', estimate_hours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' });
                       setStoryModalIsEdit(false);
                       setStoryModalOpen(true);
                     }}>Add Story</Button>
@@ -256,7 +283,15 @@ const Projects = () => {
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <IconButton size="small" onClick={() => {
-                                setStoryForm({ name: story.name, description: story.description || '' });
+                                setStoryForm({ 
+                                  name: story.name, 
+                                  description: story.description || '',
+                                  estimate_hours: story.estimate_hours || 0,
+                                  assigned_user: story.assigned_user || '',
+                                  reporter: story.reporter || '',
+                                  end_date: story.end_date ? story.end_date.substring(0, 10) : '',
+                                  priority: story.priority || 'Medium'
+                                });
                                 setActiveStoryId(story._id);
                                 setStoryModalIsEdit(true);
                                 setStoryModalOpen(true);
@@ -271,7 +306,7 @@ const Projects = () => {
                           <Typography variant="body1" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>{story.description}</Typography>
                           <Button size="small" variant="text" sx={{ color: '#10b981' }} startIcon={<AddIcon />} fullWidth onClick={() => {
                             setActiveStoryId(story._id);
-                            setTaskForm({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0 });
+                            setTaskForm({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' });
                             setTaskModalIsEdit(false);
                             setTaskModalOpen(true);
                           }}>Add Task / Bug</Button>
@@ -301,7 +336,11 @@ const Projects = () => {
                                     </Typography>
                                   )}
                                   <IconButton size="small" onClick={() => {
-                                    setTaskForm({ type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0 });
+                                    setTaskForm({ 
+                                      type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0,
+                                      assigned_user: task.assigned_user || '', reporter: task.reporter || '',
+                                      end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium'
+                                    });
                                     setActiveTaskId(task._id);
                                     setTaskModalIsEdit(true);
                                     setTaskModalOpen(true);
@@ -355,6 +394,35 @@ const Projects = () => {
         <DialogContent sx={{ minWidth: 400 }}>
           <TextField autoFocus margin="dense" label="Story Name" fullWidth value={storyForm.name} onChange={e => setStoryForm({ ...storyForm, name: e.target.value })} />
           <TextField margin="dense" label="Description" fullWidth multiline rows={3} value={storyForm.description} onChange={e => setStoryForm({ ...storyForm, description: e.target.value })} />
+          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+            <TextField margin="dense" label="Estimated Hours" type="number" fullWidth value={storyForm.estimate_hours} onChange={e => setStoryForm({ ...storyForm, estimate_hours: e.target.value })} />
+            <TextField margin="dense" label="End Date" type="date" fullWidth InputLabelProps={{ shrink: true }} value={storyForm.end_date} onChange={e => setStoryForm({ ...storyForm, end_date: e.target.value })} />
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Priority</InputLabel>
+              <Select value={storyForm.priority} label="Priority" onChange={e => setStoryForm({ ...storyForm, priority: e.target.value })}>
+                <MenuItem value="Critical">Critical</MenuItem>
+                <MenuItem value="High">High</MenuItem>
+                <MenuItem value="Medium">Medium</MenuItem>
+                <MenuItem value="Low">Low</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Assignee</InputLabel>
+              <Select value={storyForm.assigned_user} label="Assignee" onChange={e => setStoryForm({ ...storyForm, assigned_user: e.target.value })}>
+                <MenuItem value=""><em>None</em></MenuItem>
+                {users.map(u => <MenuItem key={u._id} value={u._id || u.user_id}>{u.name}</MenuItem>)}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Reporter</InputLabel>
+              <Select value={storyForm.reporter} label="Reporter" onChange={e => setStoryForm({ ...storyForm, reporter: e.target.value })}>
+                <MenuItem value=""><em>None</em></MenuItem>
+                {users.map(u => <MenuItem key={u._id} value={u._id || u.user_id}>{u.name}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setStoryModalOpen(false)}>Cancel</Button>
@@ -386,8 +454,36 @@ const Projects = () => {
             )}
           </Box>
           <TextField margin="dense" label="Name" fullWidth value={taskForm.name} onChange={e => setTaskForm({ ...taskForm, name: e.target.value })} />
-          <TextField margin="dense" label="Estimated Hours" type="number" fullWidth value={taskForm.estimateHours} onChange={e => setTaskForm({ ...taskForm, estimateHours: e.target.value })} />
           <TextField margin="dense" label="Description" fullWidth multiline rows={3} value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })} />
+          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+            <TextField margin="dense" label="Estimated Hours" type="number" fullWidth value={taskForm.estimateHours} onChange={e => setTaskForm({ ...taskForm, estimateHours: e.target.value })} />
+            <TextField margin="dense" label="End Date" type="date" fullWidth InputLabelProps={{ shrink: true }} value={taskForm.end_date} onChange={e => setTaskForm({ ...taskForm, end_date: e.target.value })} />
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Priority</InputLabel>
+              <Select value={taskForm.priority} label="Priority" onChange={e => setTaskForm({ ...taskForm, priority: e.target.value })}>
+                <MenuItem value="Critical">Critical</MenuItem>
+                <MenuItem value="High">High</MenuItem>
+                <MenuItem value="Medium">Medium</MenuItem>
+                <MenuItem value="Low">Low</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Assignee</InputLabel>
+              <Select value={taskForm.assigned_user} label="Assignee" onChange={e => setTaskForm({ ...taskForm, assigned_user: e.target.value })}>
+                <MenuItem value=""><em>None</em></MenuItem>
+                {users.map(u => <MenuItem key={u._id} value={u._id || u.user_id}>{u.name}</MenuItem>)}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Reporter</InputLabel>
+              <Select value={taskForm.reporter} label="Reporter" onChange={e => setTaskForm({ ...taskForm, reporter: e.target.value })}>
+                <MenuItem value=""><em>None</em></MenuItem>
+                {users.map(u => <MenuItem key={u._id} value={u._id || u.user_id}>{u.name}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setTaskModalOpen(false)}>Cancel</Button>
