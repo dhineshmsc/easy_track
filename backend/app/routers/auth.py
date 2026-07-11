@@ -81,7 +81,17 @@ async def register(req: CreateUserRequest):
     try:
         # Create company document
         companies_collection = get_companies_collection()
+        
+        company_id = 1
+        if companies_collection is not None:
+            last_company = companies_collection.find_one(sort=[("company_id", -1)])
+            if last_company and "company_id" in last_company:
+                company_id = last_company["company_id"] + 1
+                
+        user_data["company_id"] = company_id
+
         company_data = {
+            "company_id": company_id,
             "company_name": req.company_name,
             "plan": req.plan,
             "expire_date": expire_date,
@@ -115,13 +125,24 @@ async def login(req: LoginRequest):
     user = users_collection.find_one({"email": req.email})
     
     if not user:
-        raise HTTPException(status_code=404, detail="Please signup")
+        raise HTTPException(status_code=404, detail="create signup")
     
     stored_password = user.get("password", "")
     is_valid = verify_password(req.password, stored_password)
 
     if not is_valid:
-        raise HTTPException(status_code=401, detail="Unable to login")
+        raise HTTPException(status_code=401, detail="unable to login")
+        
+    company_name = user.get("company_name")
+    if company_name:
+        companies_collection = get_companies_collection()
+        company = companies_collection.find_one({"company_name": company_name})
+        if company and "expire_date" in company:
+            if datetime.datetime.utcnow() > company["expire_date"]:
+                raise HTTPException(status_code=403, detail="your plan is completed, please purchase")
+                
+    if user.get("status", "Active") == "Inactive":
+        raise HTTPException(status_code=403, detail="your account is block please ask to admin")
         
     access_token = create_access_token(data={"user_id": user.get("user_id")})
         

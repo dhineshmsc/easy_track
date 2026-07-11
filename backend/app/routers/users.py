@@ -4,7 +4,7 @@ from datetime import datetime
 from bson import ObjectId
 import secrets
 
-from app.database import get_users_collection
+from app.database import get_users_collection, get_companies_collection
 from app.schemas.user_management import UserCreate, UserUpdate, UserResponse
 from app.auth import hash_password
 from app.utils import send_welcome_email
@@ -58,7 +58,12 @@ async def create_user(company_name: str, req: UserCreate, background_tasks: Back
     
     now = datetime.utcnow()
     
+    companies_col = get_companies_collection()
+    company = companies_col.find_one({"company_name": company_name})
+    company_id = company.get("company_id") if company else None
+    
     user_doc = {
+        "company_id": company_id,
         "company_name": company_name,
         "user_id": user_id,
         "name": req.name,
@@ -121,15 +126,12 @@ async def update_user(user_obj_id: str, req: UserUpdate):
     return doc
 
 @router.delete("/{user_obj_id}")
-async def soft_delete_user(user_obj_id: str):
+async def delete_user(user_obj_id: str):
     users_col = get_users_collection()
     
-    result = users_col.update_one(
-        {"_id": ObjectId(user_obj_id)}, 
-        {"$set": {"status": "Inactive", "updated_at": datetime.utcnow()}}
-    )
+    result = users_col.delete_one({"_id": ObjectId(user_obj_id)})
     
-    if result.matched_count == 0:
+    if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
         
-    return {"message": "User soft deleted (set to Inactive)"}
+    return {"message": "User deleted successfully"}

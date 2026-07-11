@@ -55,12 +55,9 @@ const LoginForm = ({ onSuccess, onForgotPassword, onFirstLogin }) => {
           const company = data.company || 'default';
           navigate(`/${company}/dashboard`);
         }
-      } else if (loginResponse.status === 404) {
-        toast.error("please signup");
-      } else if (loginResponse.status === 401) {
-        toast.error("unable to login");
       } else {
-        toast.error("unable to login");
+        const errData = await loginResponse.json();
+        toast.error(errData.detail || "unable to login");
       }
     } catch (err) {
       toast.error("Failed to connect to the backend server to login.");

@@ -3,17 +3,71 @@ import { useParams } from 'react-router-dom';
 import {
   Box, ThemeProvider, CssBaseline, Typography, Button, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, IconButton,
-  FormControl, InputLabel, Select, MenuItem, Chip, Avatar, CircularProgress
+  FormControl, InputLabel, Select, MenuItem, Chip, Avatar, CircularProgress, Switch
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import BlockIcon from '@mui/icons-material/Block';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
 import { toast } from 'react-hot-toast';
 import appleTheme from '../theme';
+
+const CustomStatusSwitch = styled(Switch)(({ theme }) => ({
+  width: 90,
+  height: 32,
+  padding: 0,
+  display: 'flex',
+  '& .MuiSwitch-switchBase': {
+    padding: 4,
+    color: '#fff',
+    '&.Mui-checked': {
+      transform: 'translateX(58px)',
+      color: '#fff',
+      '& + .MuiSwitch-track': {
+        backgroundColor: '#4caf50',
+        opacity: 1,
+        border: 0,
+        '&:before': {
+          content: '"ACTIVE"',
+          position: 'absolute',
+          left: 10,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: '#fff',
+          fontSize: '0.7rem',
+          fontWeight: 'bold',
+        },
+        '&:after': {
+          content: '""',
+        },
+      },
+    },
+  },
+  '& .MuiSwitch-thumb': {
+    width: 24,
+    height: 24,
+    boxShadow: 'none',
+  },
+  '& .MuiSwitch-track': {
+    borderRadius: 32 / 2,
+    backgroundColor: '#f44336',
+    opacity: 1,
+    position: 'relative',
+    '&:after': {
+      content: '"INACTIVE"',
+      position: 'absolute',
+      right: 8,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      color: '#fff',
+      fontSize: '0.7rem',
+      fontWeight: 'bold',
+    },
+  },
+}));
 
 const Users = () => {
   const { company } = useParams();
@@ -26,7 +80,7 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+
   // Modals
   const [modalOpen, setModalOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -103,7 +157,7 @@ const Users = () => {
       toast.error("Name and Email are required");
       return;
     }
-    
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
@@ -116,7 +170,7 @@ const Users = () => {
       let url = `${import.meta.env.VITE_API_URL}/users/`;
       let method = 'POST';
       let bodyData = { ...formData };
-      
+
       if (isEdit) {
         url = `${import.meta.env.VITE_API_URL}/users/${selectedUser.id}`;
         method = 'PUT';
@@ -135,21 +189,21 @@ const Users = () => {
         const data = await res.json();
         toast.success(isEdit ? "User updated successfully" : "User created successfully. Password sent to email.");
         if (data.generated_password) {
-            console.log("For testing purposes, generated password is:", data.generated_password);
+          console.log("For testing purposes, generated password is:", data.generated_password);
         }
         handleCloseModal();
         fetchUsers();
       } else {
         const errData = await res.json();
         let errMsg = "Failed to save user";
-        
+
         if (Array.isArray(errData.detail)) {
           // FastAPI validation error format
           errMsg = errData.detail.map(err => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
         } else if (errData.detail) {
           errMsg = errData.detail;
         }
-        
+
         toast.error(errMsg);
       }
     } catch (err) {
@@ -159,54 +213,92 @@ const Users = () => {
     }
   };
 
-  const handleDeactivate = async (id) => {
-    if (!window.confirm("Are you sure you want to deactivate this user?")) return;
-    
+  const handleToggleStatus = async (user) => {
+    const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/users/${id}`, {
-        method: 'DELETE'
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/users/${user.id}`, {
+        method: 'PUT',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
       });
-      
       if (res.ok) {
-        toast.success("User deactivated successfully");
+        toast.success(`User status changed to ${newStatus}`);
         fetchUsers();
       } else {
-        toast.error("Failed to deactivate user");
+        toast.error("Failed to update status");
       }
     } catch (err) {
-      toast.error("Error deactivating user");
+      toast.error("Error updating status");
     }
   };
 
+  const handleDelete = (id) => {
+    toast((t) => (
+      <Box>
+        <Typography variant="body2" mb={1} color="text.primary">Are you sure you want to delete this user?</Typography>
+        <Box display="flex" gap={1} justifyContent="flex-end">
+          <Button size="small" onClick={() => toast.dismiss(t.id)}>No</Button>
+          <Button size="small" variant="contained" color="error" onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              const res = await fetch(`${import.meta.env.VITE_API_URL}/users/${id}`, {
+                method: 'DELETE'
+              });
+              if (res.ok) {
+                toast.success("User deleted successfully");
+                fetchUsers();
+              } else {
+                toast.error("Failed to delete user");
+              }
+            } catch (err) {
+              toast.error("Error deleting user");
+            }
+          }}>Yes</Button>
+        </Box>
+      </Box>
+    ), { duration: Infinity, style: { minWidth: '300px' }, position: 'top-center' });
+  };
+
   const columns = [
+    {
+      field: 'sno',
+      headerName: 'S.No',
+      width: 70,
+      renderCell: (params) => {
+        return params.api.getAllRowIds().indexOf(params.id) + 1;
+      }
+    },
     { 
-      field: 'profile', 
-      headerName: '', 
-      width: 60,
+      field: 'name', 
+      headerName: 'Name', 
+      width: 250,
+      headerAlign: 'center',
+      align: 'center',
       renderCell: (params) => (
-        <Avatar src={params.row.profile_image} sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.9rem' }}>
-          {params.row.name ? params.row.name.charAt(0) : 'U'}
-        </Avatar>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, width: '100%', height: '100%' }}>
+          <Typography variant="body2">{params.value}</Typography>
+          <Avatar src={params.row.profile_image} sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.9rem' }}>
+            {params.value ? params.value.charAt(0) : 'U'}
+          </Avatar>
+        </Box>
       )
     },
-    { field: 'name', headerName: 'Name', width: 200 },
     { field: 'email', headerName: 'Email', width: 220 },
     { field: 'designation', headerName: 'Designation', width: 150 },
     { field: 'role', headerName: 'Role', width: 130 },
-    { 
-      field: 'status', 
-      headerName: 'Status', 
-      width: 120,
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 130,
+      headerAlign: 'center',
+      align: 'center',
       renderCell: (params) => (
-        <Chip 
-          label={params.value} 
-          size="small"
-          sx={{ 
-            bgcolor: params.value === 'Active' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
-            color: params.value === 'Active' ? '#4caf50' : '#f44336',
-            fontWeight: 500
-          }} 
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          <CustomStatusSwitch 
+            checked={params.value === 'Active'} 
+            onChange={() => handleToggleStatus(params.row)} 
+          />
+        </Box>
       )
     },
     {
@@ -215,14 +307,7 @@ const Users = () => {
       headerName: 'Actions',
       width: 150,
       getActions: (params) => {
-        const actions = [
-          <GridActionsCellItem
-            key="view"
-            icon={<VisibilityIcon fontSize="small" />}
-            label="View"
-            onClick={() => handleOpenModal(params.row, true)}
-          />
-        ];
+        const actions = [];
 
         if (canManageUsers) {
           actions.push(
@@ -234,10 +319,9 @@ const Users = () => {
             />,
             <GridActionsCellItem
               key="delete"
-              icon={<BlockIcon fontSize="small" color="error" />}
-              label="Deactivate"
-              onClick={() => handleDeactivate(params.row.id)}
-              disabled={params.row.status === 'Inactive'}
+              icon={<DeleteIcon fontSize="small" color="error" />}
+              label="Delete"
+              onClick={() => handleDelete(params.row.id)}
             />
           );
         }
@@ -251,22 +335,22 @@ const Users = () => {
       <CssBaseline />
       <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
         <Sidebar company={company} activeMenu="Users" />
-        
+
         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
           <TopNav company={company} username={username} />
-          
+
           <Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto' }}>
             <Box sx={{ maxWidth: 1400, mx: 'auto', display: 'flex', flexDirection: 'column', height: '100%' }}>
-              
+
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Box>
                   <Typography variant="h4" fontWeight="bold">User Management</Typography>
                   <Typography variant="body1" color="text.secondary">Manage your organization's users and roles.</Typography>
                 </Box>
                 {canManageUsers && (
-                  <Button 
-                    variant="contained" 
-                    startIcon={<AddIcon />} 
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
                     onClick={() => handleOpenModal()}
                     sx={{ px: 3, py: 1 }}
                   >
@@ -306,21 +390,21 @@ const Users = () => {
         </DialogTitle>
         <DialogContent dividers sx={{ borderColor: 'rgba(0,0,0,0.08)' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-            
-            <TextField label="Name" required fullWidth value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-            
+
+            <TextField label="Name" required fullWidth value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField label="Email" type="email" required fullWidth value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-              <TextField label="Mobile Number" fullWidth value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} />
+              <TextField label="Email" type="email" required fullWidth value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+              <TextField label="Mobile Number" fullWidth value={formData.mobile} onChange={e => setFormData({ ...formData, mobile: e.target.value })} />
             </Box>
-            
-            <TextField label="Designation" fullWidth value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} />
+
+            <TextField label="Designation" fullWidth value={formData.designation} onChange={e => setFormData({ ...formData, designation: e.target.value })} />
 
             <Box sx={{ display: 'flex', gap: 2 }}>
               <FormControl fullWidth>
                 <InputLabel>Role</InputLabel>
-                <Select value={formData.role} label="Role" onChange={e => setFormData({...formData, role: e.target.value})}>
-                  <MenuItem value="Owner">Owner</MenuItem>
+                <Select value={formData.role} label="Role" onChange={e => setFormData({ ...formData, role: e.target.value })}>
+                  <MenuItem value="Super Admin">Super Admin</MenuItem>
                   <MenuItem value="Admin">Admin</MenuItem>
                   <MenuItem value="Project Manager">Project Manager</MenuItem>
                   <MenuItem value="Developer">Developer</MenuItem>
@@ -328,10 +412,10 @@ const Users = () => {
                   <MenuItem value="Viewer">Viewer</MenuItem>
                 </Select>
               </FormControl>
-              
+
               <FormControl fullWidth>
                 <InputLabel>Status</InputLabel>
-                <Select value={formData.status} label="Status" onChange={e => setFormData({...formData, status: e.target.value})}>
+                <Select value={formData.status} label="Status" onChange={e => setFormData({ ...formData, status: e.target.value })}>
                   <MenuItem value="Active">Active</MenuItem>
                   <MenuItem value="Inactive">Inactive</MenuItem>
                 </Select>
@@ -381,14 +465,14 @@ const Users = () => {
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 1 }}>
               <Typography color="text.secondary">Status</Typography>
-              <Chip 
-                label={selectedUser?.status} 
+              <Chip
+                label={selectedUser?.status}
                 size="small"
-                sx={{ 
+                sx={{
                   bgcolor: selectedUser?.status === 'Active' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
                   color: selectedUser?.status === 'Active' ? '#4caf50' : '#f44336',
                   fontWeight: 500
-                }} 
+                }}
               />
             </Box>
           </Box>
