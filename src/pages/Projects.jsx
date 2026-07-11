@@ -28,11 +28,13 @@ const Projects = () => {
     company, username, projects, storiesByProject, tasksByStory, users,
     openModal, setOpenModal, editModal, setEditModal, projectForm, setProjectForm, handleSaveProject, handleDeleteProject,
     storyModalOpen, setStoryModalOpen, storyModalIsEdit, setStoryModalIsEdit, activeStoryId, setActiveStoryId, activeProjectId, setActiveProjectId, storyForm, setStoryForm, handleSaveStory, handleDeleteStory,
-    taskModalOpen, setTaskModalOpen, taskModalIsEdit, setTaskModalIsEdit, activeTaskId, setActiveTaskId, taskForm, setTaskForm, handleSaveTask, handleDeleteTask, handlePartialUpdateTask
+    taskModalOpen, setTaskModalOpen, taskModalIsEdit, setTaskModalIsEdit, activeTaskId, setActiveTaskId, taskForm, setTaskForm, handleSaveTask, handleDeleteTask, handlePartialUpdateTask, handlePartialUpdateStory
   } = useProjectData();
 
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editingTaskValue, setEditingTaskValue] = useState("");
+  const [editingStoryId, setEditingStoryId] = useState(null);
+  const [editingStoryValue, setEditingStoryValue] = useState("");
 
   return (
     <ThemeProvider theme={appleTheme}>
@@ -128,52 +130,147 @@ const Projects = () => {
                     stories.map((story, sIdx) => {
                       const pc = priorityColor(story.priority);
                       const tasks = tasksByStory[story._id] || [];
+                      const totalTaskHours = tasks.reduce((sum, t) => sum + (t.estimate_hours || 0), 0);
                       return (
                         <React.Fragment key={story._id}>
                           {/* STORY CARD */}
                           <Box sx={{ borderRight: '1px solid #e2e8f0', borderTop: sIdx > 0 ? '1px solid #f1f5f9' : 'none', p: 1.5 }}>
                             <Paper elevation={0} sx={{
-                              p: 1.5, borderRadius: '8px', border: '1px solid #e2e8f0', bgcolor: '#fff',
-                              borderLeft: `3px solid ${pc.border}`,
+                              pt: '10px', pb: '48px', px: '16px', borderRadius: '8px',
+                              minHeight: '200px',
+                              border: '1px solid #e2e8f0', bgcolor: '#fff',
+                              borderLeft: '4px solid #10b981',
                               transition: 'all 0.15s',
-                              '&:hover': { boxShadow: '0 4px 12px rgba(16,185,129,0.1)', borderColor: '#6ee7b7' }
+                              cursor: 'pointer',
+                              '&:hover': { boxShadow: '0 4px 12px rgba(16,185,129,0.15)', borderColor: '#6ee7b7' }
+                            }} onClick={() => {
+                              setStoryForm({ name: story.name, description: story.description || '', estimate_hours: story.estimate_hours || 0, assigned_user: story.assigned_user || '', reporter: story.reporter || '', end_date: story.end_date ? story.end_date.substring(0, 10) : '', priority: story.priority || 'Medium' });
+                              setActiveStoryId(story._id);
+                              setStoryModalIsEdit(true);
+                              setStoryModalOpen(true);
                             }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.8 }}>
-                                <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981', fontSize: '0.7rem', bgcolor: '#d1fae5', px: 0.8, py: 0.2, borderRadius: 4 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 1.5 }}>
+                                <BookmarkBorderOutlinedIcon sx={{ fontSize: 16, color: '#10b981', flexShrink: 0 }} />
+                                <Typography sx={{ fontWeight: 700, color: '#10b981', fontSize: '0.65rem', bgcolor: '#d1fae5', px: 0.6, py: 0.1, borderRadius: '3px', flexShrink: 0 }}>
                                   {story.custom_id}
                                 </Typography>
-                                <Box sx={{ display: 'flex' }}>
-                                  <IconButton size="small" sx={{ p: 0.3 }} onClick={() => {
-                                    setStoryForm({ name: story.name, description: story.description || '', estimate_hours: story.estimate_hours || 0, assigned_user: story.assigned_user || '', reporter: story.reporter || '', end_date: story.end_date ? story.end_date.substring(0, 10) : '', priority: story.priority || 'Medium' });
-                                    setActiveStoryId(story._id);
-                                    setStoryModalIsEdit(true);
-                                    setStoryModalOpen(true);
-                                  }}>
-                                    <EditIcon sx={{ fontSize: 13, color: '#94a3b8' }} />
-                                  </IconButton>
-                                  <IconButton size="small" sx={{ p: 0.3 }} onClick={() => handleDeleteStory(story._id)}>
-                                    <DeleteIcon sx={{ fontSize: 13, color: '#fca5a5' }} />
-                                  </IconButton>
-                                </Box>
-                              </Box>
-                              <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#0f172a', fontSize: '0.88rem', lineHeight: 1.3 }}>{story.name}</Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 1, flexWrap: 'wrap' }}>
-                                <Box sx={{ bgcolor: pc.bg, color: pc.color, fontSize: '0.65rem', fontWeight: 700, px: 0.8, py: 0.2, borderRadius: 4, border: `1px solid ${pc.border}` }}>
+                                <Box sx={{ bgcolor: pc.bg, color: pc.color, fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: `1px solid ${pc.border}`, flexShrink: 0 }}>
                                   {story.priority || 'Medium'}
                                 </Box>
                                 {story.estimate_hours > 0 && (
-                                  <Box sx={{ bgcolor: '#f1f5f9', color: '#64748b', fontSize: '0.65rem', fontWeight: 700, px: 0.8, py: 0.2, borderRadius: 4 }}>
-                                    {story.estimate_hours}h
+                                  <Typography sx={{ color: '#94a3b8', fontSize: '0.6rem', fontWeight: 600, flexShrink: 0 }}>{story.estimate_hours}h</Typography>
+                                )}
+                                <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
+                                  <IconButton size="small" sx={{ p: 0.2 }} onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteStory(story._id);
+                                  }}>
+                                    <DeleteIcon sx={{ fontSize: 16, color: '#fca5a5' }} />
+                                  </IconButton>
+                                </Box>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: '4px' }}>
+                                {editingStoryId === story._id ? (
+                                  <Box 
+                                    onClick={(e) => e.stopPropagation()}
+                                    sx={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden' }}
+                                  >
+                                    <TextField
+                                      value={editingStoryValue}
+                                      onChange={e => setEditingStoryValue(e.target.value)}
+                                      onKeyDown={e => {
+                                        if (e.key === 'Enter') {
+                                          if (editingStoryValue.trim()) {
+                                            handlePartialUpdateStory(story._id, { name: editingStoryValue.trim() });
+                                          }
+                                          setEditingStoryId(null);
+                                        } else if (e.key === 'Escape') {
+                                          setEditingStoryId(null);
+                                        }
+                                      }}
+                                      onBlur={() => {
+                                        setTimeout(() => {
+                                          setEditingStoryId(null);
+                                        }, 200);
+                                      }}
+                                      autoFocus
+                                      size="small"
+                                      variant="standard"
+                                      inputProps={{ style: { fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', padding: 0 } }}
+                                      sx={{ width: '160px' }}
+                                    />
+                                    <IconButton
+                                      size="small"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (editingStoryValue.trim()) {
+                                          handlePartialUpdateStory(story._id, { name: editingStoryValue.trim() });
+                                        }
+                                        setEditingStoryId(null);
+                                      }}
+                                      sx={{ p: '2px', color: '#10b981' }}
+                                    >
+                                      <CheckIcon sx={{ fontSize: 16 }} />
+                                    </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingStoryId(null);
+                                      }}
+                                      sx={{ p: '2px', color: '#ef4444' }}
+                                    >
+                                      <CloseIcon sx={{ fontSize: 16 }} />
+                                    </IconButton>
+                                  </Box>
+                                ) : (
+                                  <Box
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingStoryId(story._id);
+                                      setEditingStoryValue(story.name);
+                                    }}
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      cursor: 'pointer',
+                                      overflow: 'hidden',
+                                      '&:hover .story-title-edit-icon': { opacity: 1 }
+                                    }}
+                                  >
+                                    <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.15rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5, flexGrow: 1 }}>
+                                      {story.name}
+                                    </Typography>
+                                    <EditIcon className="story-title-edit-icon" sx={{ fontSize: 16, color: '#6366f1', opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }} />
                                   </Box>
                                 )}
                                 {story.assigned_user && (
                                   <Tooltip title={users.find(u => (u._id || u.user_id) === story.assigned_user)?.name || 'Unassigned'}>
-                                    <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: getAvatarColor(story.assigned_user), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 700, color: '#fff' }}>
+                                    <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: getAvatarColor(story.assigned_user), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                                       {getUserInitials(story.assigned_user, users)}
                                     </Box>
                                   </Tooltip>
                                 )}
                               </Box>
+                              {story.description && (
+                                <Typography
+                                  sx={{
+                                    color: '#64748b',
+                                    fontSize: '0.75rem',
+                                    mt: 1.5,
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    lineHeight: 1.4
+                                  }}
+                                >
+                                  {story.description}
+                                </Typography>
+                              )}
+                              <Typography variant="caption" sx={{ color: '#cbd5e1', fontSize: '0.68rem', mt: 2, display: 'block' }}>
+                                {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} · {totalTaskHours}h total
+                              </Typography>
                             </Paper>
                             {/* Add Story button */}
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mt: 0.5, px: 0.3, py: 0.5, borderRadius: '6px', cursor: 'pointer', color: '#94a3b8', transition: '0.15s', '&:hover': { bgcolor: '#f0fdf4', color: '#10b981' } }} onClick={() => { setActiveProjectId(proj._id); setStoryForm({ name: '', description: '', estimate_hours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' }); setStoryModalIsEdit(false); setStoryModalOpen(true); }}>
@@ -373,19 +470,4 @@ const Projects = () => {
 
       <TaskModal
         open={taskModalOpen}
-        onClose={() => setTaskModalOpen(false)}
-        taskModalIsEdit={taskModalIsEdit}
-        activeStoryId={activeStoryId}
-        setActiveStoryId={setActiveStoryId}
-        activeProjectId={activeProjectId}
-        storiesByProject={storiesByProject}
-        taskForm={taskForm}
-        setTaskForm={setTaskForm}
-        users={users}
-        onSave={handleSaveTask}
-      />
-    </ThemeProvider>
-  );
-};
-
-export default Projects;
+        onClose={() => setTaskModalOpen(fa

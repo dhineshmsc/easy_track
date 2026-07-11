@@ -203,6 +203,21 @@ export const useProjectData = () => {
       toast.error("Error updating task");
     }
   };
+  const handlePartialUpdateStory = async (id, fields) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/stories/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fields)
+      });
+      if (res.ok) {
+        toast.success("Story updated");
+        fetchAllData();
+      }
+    } catch (err) {
+      toast.error("Error updating story");
+    }
+  };
 
   return {
     company,
@@ -212,6 +227,7 @@ export const useProjectData = () => {
     tasksByStory,
     users,
     handlePartialUpdateTask,
+    handlePartialUpdateStory,
     // Project Modal State & Handlers
     openModal,
     setOpenModal,
