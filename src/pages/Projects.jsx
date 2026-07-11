@@ -109,7 +109,7 @@ const Projects = () => {
                           {proj.description.length > 90 ? proj.description.slice(0, 90) + '…' : proj.description}
                         </Typography>
                       )}
-                      <Typography variant="caption" sx={{ color: '#cbd5e1', fontSize: '0.68rem', mt: 1, display: 'block' }}>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', mt: 1, display: 'block' }}>
                         {stories.length} {stories.length === 1 ? 'story' : 'stories'}
                       </Typography>
                     </Paper>
@@ -268,7 +268,7 @@ const Projects = () => {
                                   {story.description}
                                 </Typography>
                               )}
-                              <Typography variant="caption" sx={{ color: '#cbd5e1', fontSize: '0.68rem', mt: 2, display: 'block' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', mt: 2, display: 'block' }}>
                                 {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} · {totalTaskHours}h total
                               </Typography>
                             </Paper>
@@ -470,4 +470,19 @@ const Projects = () => {
 
       <TaskModal
         open={taskModalOpen}
-        onClose={() => setTaskModalOpen(fa
+        onClose={() => setTaskModalOpen(false)}
+        taskModalIsEdit={taskModalIsEdit}
+        activeStoryId={activeStoryId}
+        setActiveStoryId={setActiveStoryId}
+        activeProjectId={activeProjectId}
+        storiesByProject={storiesByProject}
+        taskForm={taskForm}
+        setTaskForm={setTaskForm}
+        users={users}
+        onSave={handleSaveTask}
+      />
+    </ThemeProvider>
+  );
+};
+
+export default Projects;
