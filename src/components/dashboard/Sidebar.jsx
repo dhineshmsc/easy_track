@@ -6,6 +6,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
@@ -16,6 +17,7 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: `/${currentCompany}/dashboard` },
     { text: 'Projects', icon: <AccountTreeIcon />, path: `/${currentCompany}/projects` },
+    { text: 'Tasks', icon: <AssignmentIcon />, path: `/${currentCompany}/tasks` },
     { text: 'Users', icon: <PeopleIcon />, path: `/${currentCompany}/users` },
     { text: 'Reports', icon: <AssessmentIcon />, path: `/${currentCompany}/reports` },
     { text: 'Notifications', icon: <NotificationsIcon />, path: `/${currentCompany}/notifications` },

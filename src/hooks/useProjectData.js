@@ -156,9 +156,9 @@ export const useProjectData = () => {
         assigned_user: taskForm.assigned_user || null,
         reporter: taskForm.reporter || null,
         end_date: taskForm.end_date || null,
-        priority: taskForm.priority || 'Medium'
+        priority: taskForm.priority || 'Medium',
+        status: taskForm.status || 'To Do'
       };
-      if (taskModalIsEdit) baseBody.status = taskForm.status;
 
       const body = taskModalIsEdit
         ? { ...baseBody }

@@ -6,8 +6,8 @@ import {
 
 const TaskModal = ({
   open, onClose, taskModalIsEdit, activeStoryId, setActiveStoryId,
-  activeProjectId, storiesByProject = {}, taskForm, setTaskForm,
-  users = [], onSave
+  activeProjectId, setActiveProjectId, storiesByProject = {}, taskForm, setTaskForm,
+  users = [], onSave, projects = [], showProjectSelect = false
 }) => {
   const stories = activeProjectId ? (storiesByProject[activeProjectId] || []) : [];
 
@@ -15,6 +15,21 @@ const TaskModal = ({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{taskModalIsEdit ? 'Edit Task' : 'Create Task/Bug'}</DialogTitle>
       <DialogContent sx={{ minWidth: 400 }}>
+        {showProjectSelect && (
+          <FormControl fullWidth margin="dense" sx={{ mb: 1 }}>
+            <InputLabel>Project</InputLabel>
+            <Select
+              value={activeProjectId || ''}
+              label="Project"
+              onChange={e => {
+                setActiveProjectId(e.target.value);
+                setActiveStoryId(''); // Reset story selection
+              }}
+            >
+              {projects.map(p => <MenuItem key={p._id} value={p._id}>{p.name}</MenuItem>)}
+            </Select>
+          </FormControl>
+        )}
         <FormControl fullWidth margin="dense" sx={{ mb: 1 }}>
           <InputLabel>Parent Story</InputLabel>
           <Select
@@ -37,20 +52,21 @@ const TaskModal = ({
               <MenuItem value="Bug">Bug</MenuItem>
             </Select>
           </FormControl>
-          {taskModalIsEdit && (
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={taskForm.status}
-                label="Status"
-                onChange={e => setTaskForm({ ...taskForm, status: e.target.value })}
-              >
-                <MenuItem value="To Do">To Do</MenuItem>
-                <MenuItem value="In Progress">In Progress</MenuItem>
-                <MenuItem value="Done">Done</MenuItem>
-              </Select>
-            </FormControl>
-          )}
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={taskForm.status || 'To Do'}
+              label="Status"
+              onChange={e => setTaskForm({ ...taskForm, status: e.target.value })}
+            >
+              <MenuItem value="To Do">To Do</MenuItem>
+              <MenuItem value="In Progress">In Progress</MenuItem>
+              <MenuItem value="Code Review">Code Review</MenuItem>
+              <MenuItem value="Testing">Testing</MenuItem>
+              <MenuItem value="Deploy">Deploy</MenuItem>
+              <MenuItem value="Done">Done</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
         <TextField
           margin="dense"

@@ -309,7 +309,7 @@ const Projects = () => {
                                 )}
                                 {story.assigned_user && (
                                   <Tooltip title={users.find(u => (u._id || u.user_id) === story.assigned_user)?.name || 'Unassigned'}>
-                                    <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: getAvatarColor(story.assigned_user), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                                    <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: getAvatarColor(users.find(u => (u._id || u.user_id) === story.assigned_user)?.name || ''), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                                       {getUserInitials(story.assigned_user, users)}
                                     </Box>
                                   </Tooltip>
@@ -472,7 +472,7 @@ const Projects = () => {
                                         )}
                                         {task.assigned_user && (
                                           <Tooltip title={users.find(u => (u._id || u.user_id) === task.assigned_user)?.name || 'Unassigned'}>
-                                            <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: getAvatarColor(task.assigned_user), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                                            <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: getAvatarColor(users.find(u => (u._id || u.user_id) === task.assigned_user)?.name || ''), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                                               {getUserInitials(task.assigned_user, users)}
                                             </Box>
                                           </Tooltip>

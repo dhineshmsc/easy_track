@@ -26,7 +26,7 @@ async def create_task(req: TaskCreate):
     doc = req.dict()
     doc["t_seq"] = t_seq
     doc["custom_id"] = custom_id
-    doc["status"] = "To Do"
+    doc["status"] = req.status or "To Do"
     doc["created_at"] = datetime.utcnow()
     
     result = tasks_col.insert_one(doc)

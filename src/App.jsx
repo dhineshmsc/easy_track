@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import Board from './pages/Board';
 import Users from './pages/Users';
+import Tasks from './pages/Tasks';
 
 const AuthInterface = () => {
   const [currentView, setCurrentView] = useState('login'); // 'login', 'signup', 'forgot', 'update_password'
@@ -71,6 +72,7 @@ function App() {
         <Route path="/:company/dashboard" element={<Dashboard />} />
         <Route path="/:company/projects" element={<Projects />} />
         <Route path="/:company/projects/:projectId/board" element={<Board />} />
+        <Route path="/:company/tasks" element={<Tasks />} />
         <Route path="/:company/users" element={<Users />} />
       </Routes>
     </BrowserRouter>

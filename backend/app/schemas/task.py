@@ -12,6 +12,8 @@ class TaskCreate(BaseModel):
     reporter: Optional[str] = None
     end_date: Optional[datetime] = None
     priority: str = "Medium"
+    status: Optional[str] = "To Do"
+
 
 class TaskUpdate(BaseModel):
     name: Optional[str] = None

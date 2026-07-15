@@ -14,6 +14,7 @@ import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
 import { toast } from 'react-hot-toast';
 import appleTheme from '../theme';
+import { getAvatarColor } from '../utils/projectsHelper';
 
 const CustomStatusSwitch = styled(Switch)(({ theme }) => ({
   width: 90,
@@ -277,7 +278,7 @@ const Users = () => {
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, width: '100%', height: '100%' }}>
           <Typography variant="body2">{params.value}</Typography>
-          <Avatar src={params.row.profile_image} sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.9rem' }}>
+          <Avatar src={params.row.profile_image} sx={{ width: 32, height: 32, bgcolor: getAvatarColor(params.row.name || params.value), fontSize: '0.9rem', color: '#fff', fontWeight: 'bold' }}>
             {params.value ? params.value.charAt(0) : 'U'}
           </Avatar>
         </Box>
@@ -441,7 +442,7 @@ const Users = () => {
       {/* VIEW DIALOG */}
       <Dialog open={viewModalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar src={selectedUser?.profile_image} sx={{ width: 56, height: 56, bgcolor: 'primary.main' }}>
+          <Avatar src={selectedUser?.profile_image} sx={{ width: 56, height: 56, bgcolor: getAvatarColor(selectedUser?.name), color: '#fff', fontWeight: 'bold' }}>
             {selectedUser?.name?.charAt(0)}
           </Avatar>
           <Box>
