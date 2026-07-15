@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 python-dotenv
-pydantic
+pydantic[email]
 pymongo
 bcrypt
 python-jose[cryptography]
