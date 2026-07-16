@@ -24,7 +24,8 @@ async def create_story(req: StoryCreate):
     doc = req.dict()
     doc["s_seq"] = s_seq
     doc["custom_id"] = custom_id
-    doc["status"] = "To Do"
+    if "status" not in doc or not doc["status"]:
+        doc["status"] = "Not Started"
     doc["created_at"] = datetime.utcnow()
     
     result = stories_col.insert_one(doc)
@@ -40,6 +41,11 @@ async def get_stories(project_id: str):
     stories = []
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
+        if "status" not in doc or not doc["status"]:
+            doc["status"] = "Not Started"
+        if "created_at" not in doc or not doc["created_at"]:
+            doc["created_at"] = datetime.utcnow()
+            stories_col.update_one({"_id": doc["_id"]}, {"$set": {"created_at": doc["created_at"]}})
         stories.append(doc)
     return stories
 
@@ -58,6 +64,11 @@ async def update_story(story_id: str, req: StoryUpdate):
         raise HTTPException(status_code=404, detail="Story not found")
         
     doc["_id"] = str(doc["_id"])
+    if "status" not in doc or not doc["status"]:
+        doc["status"] = "Not Started"
+    if "created_at" not in doc or not doc["created_at"]:
+        doc["created_at"] = datetime.utcnow()
+        stories_col.update_one({"_id": ObjectId(story_id)}, {"$set": {"created_at": doc["created_at"]}})
     return doc
 
 @router.delete("/{story_id}")

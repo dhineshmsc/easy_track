@@ -55,16 +55,17 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
         const assUser = users.find(u => (u._id || u.user_id) === t.assigned_user);
         const repUser = users.find(u => (u._id || u.user_id) === t.reporter);
 
-        const startStr = t.created_at ? new Date(t.created_at).toISOString().split('T')[0] : '';
-        const dueStr = t.end_date ? new Date(t.end_date).toISOString().split('T')[0] : 'N/A';
+        // Use local date methods to avoid UTC timezone shift (e.g. UTC+5:30 offset)
+        const startStr = t.created_at ? (() => { const d = new Date(t.created_at); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })() : '-';
+        const dueStr   = t.end_date   ? String(t.end_date).substring(0, 10) : '-';
 
         taskRows.push({
           id: t._id,
           name: t.name,
           project: proj.name,
           story: s.name,
-          assignee: assUser ? assUser.name : 'Unassigned',
-          reporter: repUser ? repUser.name : 'Unknown',
+          assignee: assUser ? assUser.name : '-',
+          reporter: repUser ? repUser.name : '-',
           priority: t.priority || 'Medium',
           status: t.status || 'To Do',
           estimate: t.estimate_hours || 0,
@@ -294,9 +295,9 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
           <DataGrid
             rows={filteredData}
             columns={columns}
-            pageSizeOptions={[5, 10, 20]}
+            pageSizeOptions={[10, 20, 50]}
             initialState={{
-              pagination: { paginationModel: { pageSize: 5 } }
+              pagination: { paginationModel: { pageSize: 10 } }
             }}
             disableRowSelectionOnClick
             sx={{

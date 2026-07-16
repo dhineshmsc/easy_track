@@ -37,7 +37,7 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
     }}>
       <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box sx={{ width: 32, height: 32, bgcolor: 'primary.main', borderRadius: 1 }} />
-        <Typography variant="h6" fontWeight="bold">SaaS Flow</Typography>
+        <Typography variant="h6" fontWeight="bold">Easy Task</Typography>
       </Box>
       <Divider />
       <List sx={{ px: 2, pt: 2, flex: 1 }}>
@@ -61,9 +61,9 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
                 <ListItemIcon sx={{ minWidth: 40, color: isActive ? 'inherit' : 'text.secondary' }}>
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  primaryTypographyProps={{ fontWeight: isActive ? 600 : 500 }} 
+                <ListItemText
+                  primary={item.text}
+                  primaryTypographyProps={{ fontWeight: isActive ? 600 : 500 }}
                 />
               </ListItemButton>
             </ListItem>

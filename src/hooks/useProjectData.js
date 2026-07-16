@@ -16,14 +16,23 @@ export const useProjectData = () => {
   const [openModal, setOpenModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
   const [editProjectId, setEditProjectId] = useState(null);
-  const [projectForm, setProjectForm] = useState({ name: '', description: '' });
+  const [projectForm, setProjectForm] = useState({
+    name: '',
+    description: '',
+    estimate_hours: 0,
+    end_date: '',
+    priority: 'Medium',
+    assigned_user: [],
+    reporter: '',
+    status: 'Not Started'
+  });
 
   // Story Modal State
   const [storyModalOpen, setStoryModalOpen] = useState(false);
   const [storyModalIsEdit, setStoryModalIsEdit] = useState(false);
   const [activeStoryId, setActiveStoryId] = useState(null);
   const [activeProjectId, setActiveProjectId] = useState(null);
-  const [storyForm, setStoryForm] = useState({ name: '', description: '', estimate_hours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' });
+  const [storyForm, setStoryForm] = useState({ name: '', description: '', estimate_hours: 0, assigned_user: [], reporter: '', end_date: '', priority: 'Medium', status: 'Not Started' });
 
   // Task Modal State
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -76,7 +85,17 @@ export const useProjectData = () => {
     try {
       const url = editModal ? `${import.meta.env.VITE_API_URL}/projects/${editProjectId}` : `${import.meta.env.VITE_API_URL}/projects/`;
       const method = editModal ? 'PUT' : 'POST';
-      const body = editModal ? { ...projectForm } : { ...projectForm, company };
+      const baseBody = {
+        name: projectForm.name,
+        description: projectForm.description,
+        estimate_hours: parseFloat(projectForm.estimate_hours) || 0,
+        end_date: projectForm.end_date || null,
+        priority: projectForm.priority || 'Medium',
+        assigned_user: projectForm.assigned_user || null,
+        reporter: projectForm.reporter || null,
+        status: projectForm.status || 'Not Started'
+      };
+      const body = editModal ? { ...baseBody } : { ...baseBody, company };
 
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (res.ok) {
@@ -115,7 +134,8 @@ export const useProjectData = () => {
         assigned_user: storyForm.assigned_user || null,
         reporter: storyForm.reporter || null,
         end_date: storyForm.end_date || null,
-        priority: storyForm.priority || 'Medium'
+        priority: storyForm.priority || 'Medium',
+        status: storyForm.status || 'Not Started'
       };
       const body = storyModalIsEdit ? { ...baseBody } : { ...baseBody, project_id: activeProjectId };
 
@@ -219,6 +239,22 @@ export const useProjectData = () => {
     }
   };
 
+  const handlePartialUpdateProject = async (id, fields) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/projects/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fields)
+      });
+      if (res.ok) {
+        toast.success("Project updated");
+        fetchAllData();
+      }
+    } catch (err) {
+      toast.error("Error updating project");
+    }
+  };
+
   return {
     company,
     username,
@@ -228,6 +264,7 @@ export const useProjectData = () => {
     users,
     handlePartialUpdateTask,
     handlePartialUpdateStory,
+    handlePartialUpdateProject,
     // Project Modal State & Handlers
     openModal,
     setOpenModal,

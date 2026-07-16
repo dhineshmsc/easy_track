@@ -14,7 +14,7 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
   // States
   const [searchTerm, setSearchTerm] = useState('');
   const [projectFilter, setProjectFilter] = useState('all');
-  const [leadFilter, setLeadFilter] = useState('all');
+  const [reporterFilter, setReporterFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -25,10 +25,18 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
   // Status Chip Color Mapping
   const getStatusColor = (status) => {
     switch (status) {
+      case 'Done':
       case 'Completed': return 'success';
-      case 'In Progress': return 'primary';
-      case 'Planning': return 'info';
+      case 'In Progress':
+      case 'Developing': return 'primary';
+      case 'Testing': return 'info';
+      case 'Planning':
+      case 'Todo':
+      case 'To Do':
+      case 'Not Started': return 'warning';
       case 'On Hold': return 'warning';
+      case 'Closed': return 'default';
+      case 'Cancelled': return 'error';
       default: return 'default';
     }
   };
@@ -53,26 +61,19 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
 
     const progress = projTasks.length > 0 ? Math.round((done / projTasks.length) * 100) : 0;
     
-    // Project Lead
-    const leadUser = users.find(u => (u._id || u.user_id) === proj.owner_id);
-    const leadName = leadUser ? leadUser.name : 'Unknown';
+    // Project Reporter
+    const reporterUser = users.find(u => (u._id || u.user_id) === proj.reporter);
+    const reporterName = reporterUser ? reporterUser.name : (users.find(u => (u._id || u.user_id) === proj.owner_id)?.name || '-');
 
-    // Start Date
-    const startStr = proj.created_at ? new Date(proj.created_at).toISOString().split('T')[0] : '';
-
-    // Due Date (latest task end date fallback or 6 months after created_at)
-    let maxDate = '';
-    projTasks.forEach(t => {
-      if (t.end_date && t.end_date > maxDate) maxDate = t.end_date;
-    });
-    const dueStr = maxDate 
-      ? new Date(maxDate).toISOString().split('T')[0] 
-      : (proj.created_at ? new Date(new Date(proj.created_at).setMonth(new Date(proj.created_at).getMonth() + 6)).toISOString().split('T')[0] : 'N/A');
+    // Use local date methods to avoid UTC timezone shift (e.g. UTC+5:30 offset)
+    const startStr = proj.created_at ? (() => { const d = new Date(proj.created_at); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })() : '-';
+    const dueStr   = proj.end_date   ? String(proj.end_date).substring(0, 10) : '-';
 
     // Status
-    let status = 'Planning';
-    if (progress === 100) status = 'Completed';
-    else if (progress > 0) status = 'In Progress';
+    let calculatedStatus = 'Planning';
+    if (progress === 100) calculatedStatus = 'Completed';
+    else if (progress > 0) calculatedStatus = 'In Progress';
+    const status = proj.status || calculatedStatus;
 
     return {
       id: proj._id,
@@ -85,7 +86,9 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
       testing,
       done,
       progress,
-      lead: leadName,
+      reporter: reporterName,
+      estimateHours: proj.estimate_hours || 0,
+      hours: proj.total_estimate_hours || proj.estimate_hours || 0,
       startDate: startStr,
       dueDate: dueStr,
       status
@@ -100,7 +103,7 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
     }
     // Filters
     if (projectFilter !== 'all' && item.id.toString() !== projectFilter) return false;
-    if (leadFilter !== 'all' && item.lead !== leadFilter) return false;
+    if (reporterFilter !== 'all' && item.reporter !== reporterFilter) return false;
     if (statusFilter !== 'all' && item.status !== statusFilter) return false;
     
     // Date Range Filters
@@ -120,8 +123,8 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
   const handleExportCSV = () => {
     const headers = [
       'Project Name', 'Description', 'Total Stories', 'Total Tasks',
-      'Todo', 'In Progress', 'Testing', 'Done', 'Progress',
-      'Project Lead', 'Start Date', 'Due Date', 'Status'
+      'Todo', 'In Progress', 'Testing', 'Done', 'Progress', 'Estimate Hours', 'Total Hours',
+      'Reporter', 'Start Date', 'Due Date', 'Status'
     ];
     const csvRows = [headers.join(',')];
 
@@ -136,7 +139,9 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
         row.testing,
         row.done,
         `"${row.progress}%"`,
-        `"${row.lead}"`,
+        row.estimateHours,
+        row.hours,
+        `"${row.reporter}"`,
         `"${row.startDate}"`,
         `"${row.dueDate}"`,
         `"${row.status}"`
@@ -178,7 +183,9 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
         </Box>
       )
     },
-    { field: 'lead', headerName: 'Lead', width: 130 },
+    { field: 'estimateHours', headerName: 'Estimate Hours', width: 125, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'hours', headerName: 'Total Hours', width: 110, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'reporter', headerName: 'Reporter', width: 130 },
     { field: 'startDate', headerName: 'Start Date', width: 110 },
     { field: 'dueDate', headerName: 'Due Date', width: 110 },
     {
@@ -228,11 +235,11 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
             </Grid>
             <Grid item xs={12} sm={6} md={3} lg={2}>
               <FormControl size="small" fullWidth>
-                <InputLabel>Project Lead</InputLabel>
-                <Select value={leadFilter} label="Project Lead" onChange={e => setLeadFilter(e.target.value)}>
-                  <MenuItem value="all">All Leads</MenuItem>
-                  {Array.from(new Set(projectRows.map(r => r.lead))).map(lead => (
-                    <MenuItem key={lead} value={lead}>{lead}</MenuItem>
+                <InputLabel>Reporter</InputLabel>
+                <Select value={reporterFilter} label="Reporter" onChange={e => setReporterFilter(e.target.value)}>
+                  <MenuItem value="all">All Reporters</MenuItem>
+                  {Array.from(new Set(projectRows.map(r => r.reporter))).map(rep => (
+                    <MenuItem key={rep} value={rep}>{rep}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -284,9 +291,9 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
           <DataGrid
             rows={filteredData}
             columns={columns}
-            pageSizeOptions={[5, 10, 20]}
+            pageSizeOptions={[10, 20, 50]}
             initialState={{
-              pagination: { paginationModel: { pageSize: 5 } }
+              pagination: { paginationModel: { pageSize: 10 } }
             }}
             disableRowSelectionOnClick
             sx={{
@@ -315,8 +322,8 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
               <Typography variant="body2" color="text.secondary"><strong>Description:</strong> {selectedRow.description}</Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
                 <Box>
-                  <Typography variant="caption" color="text.secondary">Project Lead</Typography>
-                  <Typography variant="body2" fontWeight="bold">{selectedRow.lead}</Typography>
+                  <Typography variant="caption" color="text.secondary">Reporter</Typography>
+                  <Typography variant="body2" fontWeight="bold">{selectedRow.reporter}</Typography>
                 </Box>
                 <Box>
                   <Typography variant="caption" color="text.secondary">Status</Typography>

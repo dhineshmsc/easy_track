@@ -298,3 +298,11 @@ body, html {
     transform: rotate(360deg);
   }
 }
+
+/* Hide native date placeholder when empty and not focused */
+.empty-date-input input[type="date"]::-webkit-datetime-edit {
+  color: transparent !important;
+}
+.empty-date-input input[type="date"]:focus::-webkit-datetime-edit {
+  color: var(--text-primary, #1d1d1f) !important;
+}

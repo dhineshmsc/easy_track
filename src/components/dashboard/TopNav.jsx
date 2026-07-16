@@ -1,9 +1,9 @@
 import React from 'react';
-import { Box, IconButton, InputBase, Avatar, Typography, Badge, Menu, MenuItem, Divider } from '@mui/material';
+import { Box, IconButton, Avatar, Typography, Badge, Menu, MenuItem, Divider } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import BusinessIcon from '@mui/icons-material/Business';
+import { clearAuthCookie } from '../../utils/auth';
 
 const TopNav = ({ company, username }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -18,8 +18,7 @@ const TopNav = ({ company, username }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('username');
-    localStorage.removeItem('token');
+    clearAuthCookie();
     handleMenuClose();
     navigate('/');
   };
@@ -51,27 +50,6 @@ const TopNav = ({ company, username }) => {
         <Typography variant="h6" fontWeight="600" sx={{ letterSpacing: 0.5 }}>
           {capitalize(company)} Workspace
         </Typography>
-      </Box>
-
-      {/* Middle: Global Search */}
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        bgcolor: 'background.default',
-        borderRadius: 2,
-        px: 2,
-        py: 0.5,
-        width: 350,
-        border: '1px solid',
-        borderColor: 'divider',
-        '&:hover': { borderColor: 'primary.main' },
-        transition: 'border-color 0.2s'
-      }}>
-        <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-        <InputBase 
-          placeholder="Search projects, tasks, or users..." 
-          sx={{ flex: 1, fontSize: '0.9rem' }} 
-        />
       </Box>
 
       {/* Right side: Actions & Profile */}

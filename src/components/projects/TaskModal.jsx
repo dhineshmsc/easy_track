@@ -97,9 +97,24 @@ const TaskModal = ({
             margin="dense"
             label="End Date"
             type="date"
+            className={taskForm.end_date ? "" : "empty-date-input"}
+            onFocus={(e) => {
+              if (typeof e.target.showPicker === "function") {
+                try {
+                  e.target.showPicker();
+                } catch (err) {}
+              }
+            }}
+            onClick={(e) => {
+              if (typeof e.target.showPicker === "function") {
+                try {
+                  e.target.showPicker();
+                } catch (err) {}
+              }
+            }}
             fullWidth
             InputLabelProps={{ shrink: true }}
-            value={taskForm.end_date}
+            value={taskForm.end_date || ''}
             onChange={e => setTaskForm({ ...taskForm, end_date: e.target.value })}
           />
           <FormControl fullWidth margin="dense">

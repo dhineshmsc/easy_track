@@ -24,11 +24,18 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
 
   const getStatusColor = (status) => {
     switch (status) {
+      case 'Done':
       case 'Completed': return 'success';
-      case 'In Progress': return 'primary';
+      case 'In Progress':
+      case 'Developing': return 'primary';
       case 'Testing': return 'info';
       case 'Planning':
-      case 'To Do': return 'warning';
+      case 'Todo':
+      case 'To Do':
+      case 'Not Started': return 'warning';
+      case 'On Hold': return 'warning';
+      case 'Closed': return 'default';
+      case 'Cancelled': return 'error';
       default: return 'default';
     }
   };
@@ -53,12 +60,23 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
       
       // Reporters & Assignees
       const repUser = users.find(u => (u._id || u.user_id) === s.reporter);
-      const reporterName = repUser ? repUser.name : 'Unknown';
-      const assUser = users.find(u => (u._id || u.user_id) === s.assigned_user);
-      const assigneeName = assUser ? assUser.name : 'Unassigned';
+      const reporterName = repUser ? repUser.name : '-';
+      
+      let assigneeName = '-';
+      if (s.assigned_user) {
+        const ids = Array.isArray(s.assigned_user) ? s.assigned_user : [s.assigned_user];
+        const names = ids.map(id => users.find(u => (u._id || u.user_id) === id)?.name).filter(Boolean);
+        if (names.length > 0) {
+          assigneeName = names.join(', ');
+        }
+      }
 
-      // Due date formatting
-      const dueStr = s.end_date ? new Date(s.end_date).toISOString().split('T')[0] : 'N/A';
+      // Start date & Due date formatting
+      // Use local date methods to avoid UTC timezone shift (e.g. UTC+5:30 offset)
+      const startStr = s.created_at ? (() => { const d = new Date(s.created_at); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })() : '-';
+      const dueStr   = s.end_date   ? String(s.end_date).substring(0, 10) : '-';
+
+      const totalHours = storyTasks.reduce((sum, t) => sum + (t.estimate_hours || 0), 0);
 
       storyRows.push({
         id: s._id,
@@ -71,10 +89,13 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
         testing,
         done,
         progress,
+        estimateHours: s.estimate_hours || 0,
+        totalHours,
         reporter: reporterName,
         assignee: assigneeName,
+        startDate: startStr,
         dueDate: dueStr,
-        status: s.status || 'To Do'
+        status: s.status || 'Not Started'
       });
     });
   });
@@ -101,8 +122,8 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
   const handleExportCSV = () => {
     const headers = [
       'Story Name', 'Project Name', 'Description', 'Total Tasks',
-      'Todo', 'In Progress', 'Testing', 'Done', 'Progress',
-      'Reporter', 'Assignee', 'Due Date', 'Status'
+      'Todo', 'In Progress', 'Testing', 'Done', 'Progress', 'Est. Hours', 'Total Hours',
+      'Reporter', 'Assignee', 'Start Date', 'Due Date', 'Status'
     ];
     const csvRows = [headers.join(',')];
 
@@ -117,8 +138,11 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
         row.testing,
         row.done,
         `"${row.progress}%"`,
+        row.estimateHours,
+        row.totalHours,
         `"${row.reporter}"`,
         `"${row.assignee}"`,
+        `"${row.startDate}"`,
         `"${row.dueDate}"`,
         `"${row.status}"`
       ];
@@ -158,8 +182,11 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
         </Box>
       )
     },
+    { field: 'estimateHours', headerName: 'Est. Hours', width: 100, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => `${params.value}h` },
+    { field: 'totalHours', headerName: 'Total Hours', width: 110, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => `${params.value}h` },
     { field: 'reporter', headerName: 'Reporter', width: 120 },
     { field: 'assignee', headerName: 'Assignee', width: 120 },
+    { field: 'startDate', headerName: 'Start Date', width: 110 },
     { field: 'dueDate', headerName: 'Due Date', width: 110 },
     {
       field: 'status',
@@ -244,10 +271,17 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
                 <InputLabel>Status</InputLabel>
                 <Select value={statusFilter} label="Status" onChange={e => setStatusFilter(e.target.value)}>
                   <MenuItem value="all">All Statuses</MenuItem>
+                  <MenuItem value="Not Started">Not Started</MenuItem>
+                  <MenuItem value="Planning">Planning</MenuItem>
+                  <MenuItem value="Developing">Developing</MenuItem>
+                  <MenuItem value="On Hold">On Hold</MenuItem>
+                  <MenuItem value="Testing">Testing</MenuItem>
+                  <MenuItem value="Done">Done</MenuItem>
+                  <MenuItem value="Closed">Closed</MenuItem>
+                  <MenuItem value="Cancelled">Cancelled</MenuItem>
                   <MenuItem value="Todo">Todo</MenuItem>
                   <MenuItem value="To Do">To Do</MenuItem>
                   <MenuItem value="In Progress">In Progress</MenuItem>
-                  <MenuItem value="Testing">Testing</MenuItem>
                   <MenuItem value="Completed">Completed</MenuItem>
                 </Select>
               </FormControl>
@@ -285,9 +319,9 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
           <DataGrid
             rows={filteredData}
             columns={columns}
-            pageSizeOptions={[5, 10, 20]}
+            pageSizeOptions={[10, 20, 50]}
             initialState={{
-              pagination: { paginationModel: { pageSize: 5 } }
+              pagination: { paginationModel: { pageSize: 10 } }
             }}
             disableRowSelectionOnClick
             sx={{
@@ -328,8 +362,20 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
                   <Typography variant="body2" fontWeight="bold">{selectedRow.reporter}</Typography>
                 </Box>
                 <Box>
+                  <Typography variant="caption" color="text.secondary">Start Date</Typography>
+                  <Typography variant="body2" fontWeight="bold">{selectedRow.startDate}</Typography>
+                </Box>
+                <Box>
                   <Typography variant="caption" color="text.secondary">Due Date</Typography>
                   <Typography variant="body2" fontWeight="bold">{selectedRow.dueDate}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Est. Hours</Typography>
+                  <Typography variant="body2" fontWeight="bold">{selectedRow.estimateHours}h</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Total Hours</Typography>
+                  <Typography variant="body2" fontWeight="bold">{selectedRow.totalHours}h</Typography>
                 </Box>
               </Box>
               <Box sx={{ bgcolor: 'rgba(255,255,255,0.02)', p: 2, borderRadius: 2 }}>

@@ -16,14 +16,8 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
   const [userFilter, setUserFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   const [projectFilter, setProjectFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-
   const [selectedRow, setSelectedRow] = useState(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-
-  const getStatusColor = (status) => {
-    return status === 'Active' ? 'success' : 'default';
-  };
 
   // Convert raw DB user entities into report stats
   const userRows = users.map((u, idx) => {
@@ -48,7 +42,8 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     projects.forEach(p => {
       const projStories = storiesByProject[p._id] || [];
       projStories.forEach(s => {
-        if (s.assigned_user && s.assigned_user.toString() === userId.toString()) {
+        const storyAssignees = s.assigned_user ? (Array.isArray(s.assigned_user) ? s.assigned_user.map(id => id.toString()) : [s.assigned_user.toString()]) : [];
+        if (storyAssignees.includes(userId.toString())) {
           userStoriesList.push(s);
         }
       });
@@ -58,9 +53,14 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     const projSet = new Set();
     projects.forEach(p => {
       if (p.owner_id && p.owner_id.toString() === userId.toString()) projSet.add(p.name);
+      const projAssignees = p.assigned_user ? (Array.isArray(p.assigned_user) ? p.assigned_user.map(id => id.toString()) : [p.assigned_user.toString()]) : [];
+      if (projAssignees.includes(userId.toString())) projSet.add(p.name);
+
       const pStories = storiesByProject[p._id] || [];
       pStories.forEach(s => {
-        if (s.assigned_user && s.assigned_user.toString() === userId.toString()) projSet.add(p.name);
+        const storyAssignees = s.assigned_user ? (Array.isArray(s.assigned_user) ? s.assigned_user.map(id => id.toString()) : [s.assigned_user.toString()]) : [];
+        if (storyAssignees.includes(userId.toString())) projSet.add(p.name);
+        
         const sTasks = tasksByStory[s._id] || [];
         sTasks.forEach(t => {
           if (t.assigned_user && t.assigned_user.toString() === userId.toString()) projSet.add(p.name);
@@ -71,13 +71,24 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     const assignedProjects = Array.from(projSet).join(', ') || 'None';
 
     let todo = 0, inProgress = 0, testing = 0, done = 0;
+    let overdueTasks = 0;
+    const todayStr = new Date().toISOString().split('T')[0];
     userTasksList.forEach(t => {
       const statusName = (t.status || '').toLowerCase().trim();
       if (statusName === 'todo' || statusName === 'to do') todo++;
       else if (statusName === 'in progress') inProgress++;
       else if (statusName === 'testing') testing++;
       else if (statusName === 'done') done++;
+
+      if (statusName !== 'done' && t.end_date) {
+        const taskDueDate = t.end_date.substring(0, 10);
+        if (taskDueDate < todayStr) {
+          overdueTasks++;
+        }
+      }
     });
+
+    const totalHours = userTasksList.reduce((sum, t) => sum + (t.estimate_hours || 0), 0);
 
     return {
       id: userId,
@@ -92,9 +103,9 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
       inProgress,
       testing,
       done,
-      activeTasks: todo + inProgress + testing,
       completedTasks: done,
-      status: u.status || 'Active'
+      totalHours,
+      overdueTasks
     };
   });
 
@@ -105,7 +116,7 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     if (userFilter !== 'all' && item.name !== userFilter) return false;
     if (roleFilter !== 'all' && item.role !== roleFilter) return false;
     if (projectFilter !== 'all' && !item.assignedProjects.includes(projectFilter)) return false;
-    if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+
 
     return true;
   });
@@ -119,7 +130,7 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     const headers = [
       'Employee ID', 'User Name', 'Email', 'Role', 'Assigned Projects',
       'Assigned Stories', 'Assigned Tasks', 'Todo', 'In Progress',
-      'Testing', 'Done', 'Active Tasks', 'Completed Tasks', 'Status'
+      'Testing', 'Done', 'Completed Tasks', 'Total Hours', 'Overdue Tasks'
     ];
     const csvRows = [headers.join(',')];
 
@@ -136,9 +147,9 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
         row.inProgress,
         row.testing,
         row.done,
-        row.activeTasks,
         row.completedTasks,
-        `"${row.status}"`
+        row.totalHours,
+        row.overdueTasks
       ];
       csvRows.push(values.join(','));
     });
@@ -178,16 +189,9 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     { field: 'inProgress', headerName: 'In Progress', width: 100, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'testing', headerName: 'Testing', width: 80, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'done', headerName: 'Done', width: 70, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'activeTasks', headerName: 'Active Tasks', width: 110, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: '#ea580c' }}>{params.value}</strong> },
     { field: 'completedTasks', headerName: 'Completed Tasks', width: 130, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: '#16a34a' }}>{params.value}</strong> },
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 110,
-      renderCell: (params) => (
-        <Chip label={params.value} size="small" color={getStatusColor(params.value)} variant="outlined" sx={{ fontWeight: 'bold' }} />
-      )
-    },
+    { field: 'totalHours', headerName: 'Total Hours', width: 110, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'overdueTasks', headerName: 'Overdue Tasks', width: 130, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: params.value > 0 ? '#ef4444' : '#10b981' }}>{params.value}</strong> },
     {
       field: 'actions',
       headerName: 'Actions',
@@ -247,16 +251,7 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} md={3} lg={2.4}>
-              <FormControl size="small" fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select value={statusFilter} label="Status" onChange={e => setStatusFilter(e.target.value)}>
-                  <MenuItem value="all">All Statuses</MenuItem>
-                  <MenuItem value="Active">Active</MenuItem>
-                  <MenuItem value="Inactive">Inactive</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+
             <Grid item xs={12} sm={6} md={3} lg={2.4}>
               <TextField
                 size="small"
@@ -287,9 +282,9 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
           <DataGrid
             rows={filteredData}
             columns={columns}
-            pageSizeOptions={[5, 10, 20]}
+            pageSizeOptions={[10, 20, 50]}
             initialState={{
-              pagination: { paginationModel: { pageSize: 5 } }
+              pagination: { paginationModel: { pageSize: 10 } }
             }}
             disableRowSelectionOnClick
             sx={{
@@ -325,6 +320,7 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                 </Box>
               </Box>
               <Typography variant="body2" color="text.secondary"><strong>Assigned Projects:</strong> {selectedRow.assignedProjects}</Typography>
+              <Typography variant="body2" color="text.secondary"><strong>Total Hours:</strong> {selectedRow.totalHours}h</Typography>
               <Box sx={{ bgcolor: 'rgba(255,255,255,0.02)', p: 2, borderRadius: 2 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Tasks Statistics</Typography>
                 <Grid container spacing={2}>
@@ -337,8 +333,8 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                     <Typography variant="h6" fontWeight="bold">{selectedRow.assignedTasks}</Typography>
                   </Grid>
                   <Grid item xs={4}>
-                    <Typography variant="caption" color="text.secondary">Active Tasks</Typography>
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'warning.main' }}>{selectedRow.activeTasks}</Typography>
+                    <Typography variant="caption" color="text.secondary">In Progress Tasks</Typography>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'primary.main' }}>{selectedRow.inProgress}</Typography>
                   </Grid>
                   <Grid item xs={4}>
                     <Typography variant="caption" color="text.secondary">Completed Tasks</Typography>
@@ -349,10 +345,8 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                     <Typography variant="h6" fontWeight="bold" sx={{ color: 'info.main' }}>{selectedRow.testing}</Typography>
                   </Grid>
                   <Grid item xs={4}>
-                    <Typography variant="caption" color="text.secondary">Employee Status</Typography>
-                    <Box sx={{ mt: 0.5 }}>
-                      <Chip label={selectedRow.status} size="small" color={getStatusColor(selectedRow.status)} variant="outlined" />
-                    </Box>
+                    <Typography variant="caption" color="text.secondary">Overdue Tasks</Typography>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: selectedRow.overdueTasks > 0 ? 'error.main' : 'success.main' }}>{selectedRow.overdueTasks}</Typography>
                   </Grid>
                 </Grid>
               </Box>

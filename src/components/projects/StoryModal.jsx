@@ -52,9 +52,24 @@ const StoryModal = ({
             margin="dense"
             label="End Date"
             type="date"
+            className={storyForm.end_date ? "" : "empty-date-input"}
+            onFocus={(e) => {
+              if (typeof e.target.showPicker === "function") {
+                try {
+                  e.target.showPicker();
+                } catch (err) {}
+              }
+            }}
+            onClick={(e) => {
+              if (typeof e.target.showPicker === "function") {
+                try {
+                  e.target.showPicker();
+                } catch (err) {}
+              }
+            }}
             fullWidth
             InputLabelProps={{ shrink: true }}
-            value={storyForm.end_date}
+            value={storyForm.end_date || ''}
             onChange={e => setStoryForm({ ...storyForm, end_date: e.target.value })}
           />
           <FormControl fullWidth margin="dense">
@@ -73,14 +88,15 @@ const StoryModal = ({
         </Box>
         <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
           <FormControl fullWidth margin="dense">
-            <InputLabel>Assignee</InputLabel>
+            <InputLabel>Assignees</InputLabel>
             <Select
-              value={storyForm.assigned_user}
-              label="Assignee"
-              onChange={e => setStoryForm({ ...storyForm, assigned_user: e.target.value })}
+              multiple
+              value={storyForm.assigned_user || []}
+              label="Assignees"
+              onChange={e => setStoryForm({ ...storyForm, assigned_user: typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value })}
+              renderValue={(selected) => selected.map(id => users.find(u => (u._id || u.user_id) === id)?.name || id).join(', ')}
             >
-              <MenuItem value=""><em>None</em></MenuItem>
-              {users.map(u => <MenuItem key={u._id} value={u._id || u.user_id}>{u.name}</MenuItem>)}
+              {users.map(u => <MenuItem key={u._id || u.user_id} value={u._id || u.user_id}>{u.name}</MenuItem>)}
             </Select>
           </FormControl>
           <FormControl fullWidth margin="dense">
@@ -92,6 +108,25 @@ const StoryModal = ({
             >
               <MenuItem value=""><em>None</em></MenuItem>
               {users.map(u => <MenuItem key={u._id} value={u._id || u.user_id}>{u.name}</MenuItem>)}
+            </Select>
+          </FormControl>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={storyForm.status || 'Not Started'}
+              label="Status"
+              onChange={e => setStoryForm({ ...storyForm, status: e.target.value })}
+            >
+              <MenuItem value="Not Started">Not Started</MenuItem>
+              <MenuItem value="Planning">Planning</MenuItem>
+              <MenuItem value="Developing">Developing</MenuItem>
+              <MenuItem value="On Hold">On Hold</MenuItem>
+              <MenuItem value="Testing">Testing</MenuItem>
+              <MenuItem value="Done">Done</MenuItem>
+              <MenuItem value="Closed">Closed</MenuItem>
+              <MenuItem value="Cancelled">Cancelled</MenuItem>
             </Select>
           </FormControl>
         </Box>

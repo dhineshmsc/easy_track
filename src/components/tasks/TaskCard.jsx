@@ -97,9 +97,14 @@ const TaskCard = ({
         </Box>
         
         {task.estimate_hours > 0 && (
-          <Typography sx={{ color: '#94a3b8', fontSize: '0.6rem', fontWeight: 600, flexShrink: 0 }}>
+          <Box sx={{ bgcolor: '#eff6ff', color: '#1e40af', fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: '1px solid #bfdbfe', flexShrink: 0 }}>
             {task.estimate_hours}h
-          </Typography>
+          </Box>
+        )}
+        {task.end_date && (
+          <Box sx={{ bgcolor: '#fff1f2', color: '#e11d48', fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: '1px solid #fecdd3', flexShrink: 0 }}>
+            {typeof task.end_date === 'string' ? task.end_date.substring(0, 10) : new Date(task.end_date).toISOString().substring(0, 10)}
+          </Box>
         )}
 
         {/* Delete button (aligned right) */}

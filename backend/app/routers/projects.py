@@ -21,6 +21,8 @@ async def create_project(req: ProjectCreate):
     project_doc["custom_id"] = custom_id
     project_doc["created_at"] = datetime.utcnow()
     project_doc["owner_id"] = "system"
+    if "status" not in project_doc or not project_doc["status"]:
+        project_doc["status"] = "Not Started"
     
     result = projects_col.insert_one(project_doc)
     project_doc["_id"] = str(result.inserted_id)
@@ -38,6 +40,11 @@ async def get_projects(company: str):
     projects = []
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
+        if "status" not in doc or not doc["status"]:
+            doc["status"] = "Not Started"
+        if "created_at" not in doc or not doc["created_at"]:
+            doc["created_at"] = datetime.utcnow()
+            projects_col.update_one({"_id": doc["_id"]}, {"$set": {"created_at": doc["created_at"]}})
         
         project_id = doc["_id"]
         stories = list(stories_col.find({"project_id": project_id}))
@@ -94,6 +101,11 @@ async def update_project(project_id: str, req: ProjectUpdate):
         raise HTTPException(status_code=404, detail="Project not found")
         
     doc["_id"] = str(doc["_id"])
+    if "status" not in doc or not doc["status"]:
+        doc["status"] = "Not Started"
+    if "created_at" not in doc or not doc["created_at"]:
+        doc["created_at"] = datetime.utcnow()
+        projects_col.update_one({"_id": ObjectId(project_id)}, {"$set": {"created_at": doc["created_at"]}})
     return doc
 
 @router.delete("/{project_id}")

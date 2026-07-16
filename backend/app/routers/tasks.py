@@ -42,6 +42,9 @@ async def get_tasks(story_id: str):
     tasks = []
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
+        if "created_at" not in doc or not doc["created_at"]:
+            doc["created_at"] = datetime.utcnow()
+            tasks_col.update_one({"_id": doc["_id"]}, {"$set": {"created_at": doc["created_at"]}})
         tasks.append(doc)
     return tasks
 
@@ -60,6 +63,9 @@ async def update_task(task_id: str, req: TaskUpdate):
         raise HTTPException(status_code=404, detail="Task not found")
         
     doc["_id"] = str(doc["_id"])
+    if "created_at" not in doc or not doc["created_at"]:
+        doc["created_at"] = datetime.utcnow()
+        tasks_col.update_one({"_id": ObjectId(task_id)}, {"$set": {"created_at": doc["created_at"]}})
     return doc
 
 @router.delete("/{task_id}")

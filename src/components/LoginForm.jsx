@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { setAuthCookie } from '../utils/auth';
 
 const LoginForm = ({ onSuccess, onForgotPassword, onFirstLogin }) => {
   const navigate = useNavigate();
@@ -44,7 +45,9 @@ const LoginForm = ({ onSuccess, onForgotPassword, onFirstLogin }) => {
         toast.success("login success");
         resetForm();
         if (onSuccess) onSuccess();
-        
+
+        // Persist session in cookie + localStorage
+        setAuthCookie(data);
         if (data.name) localStorage.setItem('username', data.name);
         if (data.user_id) localStorage.setItem('user_id', data.user_id);
         if (data.token) localStorage.setItem('token', data.token);

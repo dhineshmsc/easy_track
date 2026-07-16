@@ -12,6 +12,7 @@ import Board from './pages/Board';
 import Users from './pages/Users';
 import Tasks from './pages/Tasks';
 import Reports from './pages/Reports';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const AuthInterface = () => {
   const [currentView, setCurrentView] = useState('login'); // 'login', 'signup', 'forgot', 'update_password'
@@ -69,13 +70,16 @@ function App() {
     <BrowserRouter>
       <Toaster position="top-right" />
       <Routes>
+        {/* Public: Sign-in page */}
         <Route path="/" element={<AuthInterface />} />
-        <Route path="/:company/dashboard" element={<Dashboard />} />
-        <Route path="/:company/projects" element={<Projects />} />
-        <Route path="/:company/projects/:projectId/board" element={<Board />} />
-        <Route path="/:company/tasks" element={<Tasks />} />
-        <Route path="/:company/users" element={<Users />} />
-        <Route path="/:company/reports" element={<Reports />} />
+
+        {/* Protected: all app pages require a valid auth cookie */}
+        <Route path="/:company/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+        <Route path="/:company/projects"  element={<ProtectedRoute element={<Projects />} />} />
+        <Route path="/:company/projects/:projectId/board" element={<ProtectedRoute element={<Board />} />} />
+        <Route path="/:company/tasks"     element={<ProtectedRoute element={<Tasks />} />} />
+        <Route path="/:company/users"     element={<ProtectedRoute element={<Users />} />} />
+        <Route path="/:company/reports"   element={<ProtectedRoute element={<Reports />} />} />
       </Routes>
     </BrowserRouter>
   );
