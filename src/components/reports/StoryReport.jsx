@@ -219,7 +219,7 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Filters Card */}
       <Card sx={{ border: '1px solid rgba(255,255,255,0.06)', bgcolor: 'background.paper', borderRadius: 3 }}>
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: '10px' }}>
           <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 2 }}>Story Filter Config</Typography>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} sm={6} md={3} lg={1.7}>

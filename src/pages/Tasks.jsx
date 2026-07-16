@@ -366,7 +366,7 @@ const Tasks = () => {
           <Box
             ref={scrollContainerRef}
             sx={{
-              p: 4,
+              p: '10px',
               display: 'flex',
               gap: 3,
               overflowX: 'auto',

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Divider } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Divider, IconButton, Tooltip } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import PeopleIcon from '@mui/icons-material/People';
@@ -7,12 +7,15 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
   const navigate = useNavigate();
   const params = useParams();
   const currentCompany = company || params.company;
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: `/${currentCompany}/dashboard` },
@@ -26,47 +29,80 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
 
   return (
     <Box sx={{
-      width: 260,
+      width: isMinimized ? 80 : 260,
       flexShrink: 0,
       bgcolor: 'background.paper',
       borderRight: '1px solid',
       borderColor: 'divider',
       height: '100vh',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      transition: 'width 0.3s ease'
     }}>
-      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Box sx={{ width: 32, height: 32, bgcolor: 'primary.main', borderRadius: 1 }} />
-        <Typography variant="h6" fontWeight="bold">Easy Task</Typography>
+      <Box sx={{ 
+        p: isMinimized ? 2 : 3, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: isMinimized ? 'center' : 'space-between', 
+        gap: isMinimized ? 0 : 2 
+      }}>
+        {!isMinimized && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 32, height: 32, bgcolor: 'primary.main', borderRadius: 1 }} />
+            <Typography variant="h6" fontWeight="bold">Easy Task</Typography>
+          </Box>
+        )}
+        <IconButton onClick={() => setIsMinimized(!isMinimized)} size="small">
+          {isMinimized ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+        </IconButton>
       </Box>
+      
+      {isMinimized && (
+         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+           <Box sx={{ width: 32, height: 32, bgcolor: 'primary.main', borderRadius: 1 }} />
+         </Box>
+      )}
+
       <Divider />
-      <List sx={{ px: 2, pt: 2, flex: 1 }}>
+      
+      <List sx={{ px: isMinimized ? 1 : 2, pt: 2, flex: 1 }}>
         {menuItems.map((item) => {
           const isActive = item.text === activeMenu;
           return (
-            <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
-              <ListItemButton
-                selected={isActive}
-                onClick={() => navigate(item.path)}
-                sx={{
-                  borderRadius: 2,
-                  '&.Mui-selected': {
-                    bgcolor: 'primary.main',
-                    color: 'primary.contrastText',
-                    '&:hover': { bgcolor: 'primary.dark' },
-                    '& .MuiListItemIcon-root': { color: 'inherit' }
-                  }
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40, color: isActive ? 'inherit' : 'text.secondary' }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{ fontWeight: isActive ? 600 : 500 }}
-                />
-              </ListItemButton>
-            </ListItem>
+            <Tooltip title={isMinimized ? item.text : ''} placement="right" key={item.text}>
+              <ListItem disablePadding sx={{ mb: 1 }}>
+                <ListItemButton
+                  selected={isActive}
+                  onClick={() => navigate(item.path)}
+                  sx={{
+                    borderRadius: 2,
+                    justifyContent: isMinimized ? 'center' : 'flex-start',
+                    px: isMinimized ? 1 : 2,
+                    '&.Mui-selected': {
+                      bgcolor: 'primary.main',
+                      color: 'primary.contrastText',
+                      '&:hover': { bgcolor: 'primary.dark' },
+                      '& .MuiListItemIcon-root': { color: 'inherit' }
+                    }
+                  }}
+                >
+                  <ListItemIcon sx={{ 
+                    minWidth: isMinimized ? 0 : 40, 
+                    mr: isMinimized ? 0 : 2,
+                    justifyContent: 'center',
+                    color: isActive ? 'inherit' : 'text.secondary' 
+                  }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  {!isMinimized && (
+                    <ListItemText
+                      primary={item.text}
+                      primaryTypographyProps={{ fontWeight: isActive ? 600 : 500 }}
+                    />
+                  )}
+                </ListItemButton>
+              </ListItem>
+            </Tooltip>
           );
         })}
       </List>

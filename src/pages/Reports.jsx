@@ -41,7 +41,7 @@ const Reports = () => {
           <TopNav company={company} username={username} />
 
           {/* Scrolling Core Content Panel */}
-          <Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box sx={{ p: '10px', flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
 
             {/* Tab Selectors — Order: Project, Story, Task, User */}
             <Card sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -54,7 +54,7 @@ const Reports = () => {
                 </Tabs>
               </Box>
 
-              <Box sx={{ p: 3, flexGrow: 1, overflow: 'auto' }}>
+              <Box sx={{ p: '10px', flexGrow: 1, overflow: 'auto' }}>
                 {!hasData ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
                     <CircularProgress size={40} />

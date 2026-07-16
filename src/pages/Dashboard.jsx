@@ -29,7 +29,7 @@ const Dashboard = () => {
           <TopNav company={company} username={username} />
           
           <Box sx={{ 
-            p: 4, 
+            p: '10px', 
             overflowY: 'auto', 
             flexGrow: 1,
             /* Apple-style Scrollbar */

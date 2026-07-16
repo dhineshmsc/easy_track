@@ -147,7 +147,7 @@ const Board = () => {
         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
           <TopNav company={company} username={username} />
           
-          <Box sx={{ p: 4, overflowY: 'auto', flexGrow: 1 }}>
+          <Box sx={{ p: '10px', overflowY: 'auto', flexGrow: 1 }}>
             {project && (
               <Box sx={{ mb: 4, p: 3, bgcolor: '#ffffff', borderRadius: 2, borderLeft: '6px solid', borderColor: 'primary.main', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <Typography variant="h4" fontWeight="bold">

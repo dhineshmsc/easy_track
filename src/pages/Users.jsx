@@ -340,7 +340,7 @@ const Users = () => {
         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
           <TopNav company={company} username={username} />
 
-          <Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto' }}>
+          <Box sx={{ p: '10px', flexGrow: 1, overflowY: 'auto' }}>
             <Box sx={{ maxWidth: 1400, mx: 'auto', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

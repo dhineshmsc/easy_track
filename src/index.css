@@ -306,3 +306,7 @@ body, html {
 .empty-date-input input[type="date"]:focus::-webkit-datetime-edit {
   color: var(--text-primary, #1d1d1f) !important;
 }
+
+.MuiTablePagination-selectLabel {
+  padding: 10px !important;
+}
