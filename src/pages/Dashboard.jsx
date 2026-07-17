@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, ThemeProvider, createTheme, CssBaseline, Grid } from '@mui/material';
+import { Box, CssBaseline, Grid } from '@mui/material';
 
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
@@ -10,14 +10,12 @@ import ActivityFeed from '../components/dashboard/ActivityFeed';
 import MyTasksTable from '../components/dashboard/MyTasksTable';
 import RecentProjects from '../components/dashboard/RecentProjects';
 
-import appleTheme from '../theme';
-
 const Dashboard = () => {
   const { company } = useParams();
   const username = localStorage.getItem('username') || '';
 
   return (
-    <ThemeProvider theme={appleTheme}>
+    <>
       <CssBaseline />
       <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
         
@@ -63,7 +61,7 @@ const Dashboard = () => {
         </Box>
 
       </Box>
-    </ThemeProvider>
+    </>
   );
 };
 

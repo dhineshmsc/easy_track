@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Box, CssBaseline, ThemeProvider, Typography, Card, CardContent, Button, List, ListItem, ListItemAvatar, Avatar, ListItemText, Divider, Chip
+  Box, CssBaseline, Typography, Card, CardContent, Button, List, ListItem, ListItemAvatar, Avatar, ListItemText, Divider, Chip
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
@@ -12,7 +12,6 @@ import InfoIcon from '@mui/icons-material/Info';
 
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
-import appleTheme from '../theme';
 
 const initialNotifications = [
   {
@@ -75,7 +74,7 @@ const Notifications = () => {
   };
 
   return (
-    <ThemeProvider theme={appleTheme}>
+    <>
       <CssBaseline />
       <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
         <Sidebar activeMenu="Notifications" />
@@ -152,7 +151,7 @@ const Notifications = () => {
           </Box>
         </Box>
       </Box>
-    </ThemeProvider>
+    </>
   );
 };
 

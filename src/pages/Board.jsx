@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, ThemeProvider, createTheme, CssBaseline, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Paper, Divider, FormControl, InputLabel, Select, MenuItem, Grid } from '@mui/material';
+import { Box, createTheme, CssBaseline, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Paper, Divider, FormControl, InputLabel, Select, MenuItem, Grid } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
 import { toast } from 'react-hot-toast';
-
-import appleTheme from '../theme';
 
 const Board = () => {
   const { company, projectId } = useParams();
@@ -140,16 +138,16 @@ const Board = () => {
   };
 
   return (
-    <ThemeProvider theme={appleTheme}>
+    <>
       <CssBaseline />
-      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
         <Sidebar company={company} activeMenu="Projects" />
         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
           <TopNav company={company} username={username} />
           
           <Box sx={{ p: '10px', overflowY: 'auto', flexGrow: 1 }}>
             {project && (
-              <Box sx={{ mb: 4, p: 3, bgcolor: '#ffffff', borderRadius: 2, borderLeft: '6px solid', borderColor: 'primary.main', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ mb: 4, p: 3, bgcolor: 'background.paper', borderRadius: 2, borderLeft: '6px solid', borderColor: 'primary.main', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <Typography variant="h4" fontWeight="bold">
                   {project.custom_id} : {project.name}
                 </Typography>
@@ -276,7 +274,7 @@ const Board = () => {
           <Button onClick={handleSaveTask} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
-    </ThemeProvider>
+    </>
   );
 };
 

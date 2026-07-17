@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Box, ThemeProvider, CssBaseline, Typography, IconButton, Paper, Tooltip, TextField
+  Box, CssBaseline, Typography, IconButton, Paper, Tooltip, TextField
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -16,7 +16,6 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
-import appleTheme from '../theme';
 
 import { useProjectData } from '../hooks/useProjectData';
 import { priorityColor, statusColor, getUserInitials, getAvatarColor } from '../utils/projectsHelper';
@@ -51,24 +50,24 @@ const Projects = () => {
   };
 
   return (
-    <ThemeProvider theme={appleTheme}>
+    <>
       <CssBaseline />
-      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: '#f8fafc' }}>
+      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
         <Sidebar company={company} activeMenu="Projects" />
         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <TopNav company={company} username={username} />
 
           {/* PAGE HEADER */}
-          <Box sx={{ px: 3, py: 2, bgcolor: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <Box sx={{ px: 3, py: 2, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
             <Box>
-              <Typography variant="h5" fontWeight="800" sx={{ color: '#0f172a', letterSpacing: -0.5 }}>Board</Typography>
+              <Typography variant="h5" fontWeight="800" sx={{ color: 'text.primary', letterSpacing: -0.5 }}>Board</Typography>
               <Typography variant="body2" sx={{ color: '#64748b', mt: 0.3 }}>Project · Story · Task overview</Typography>
             </Box>
           </Box>
 
           {/* BOARD HEADER */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', bgcolor: '#fff', borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
-            <Box sx={{ px: 2, py: 1.5, borderRight: '1px solid #e2e8f0', borderBottom: '3px solid #6366f1', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
+            <Box sx={{ px: 2, py: 1.5, borderRight: '1px solid', borderColor: 'divider', borderBottom: '3px solid #6366f1', display: 'flex', alignItems: 'center', gap: 1 }}>
               <FolderOutlinedIcon sx={{ fontSize: 16, color: '#6366f1' }} />
               <Typography variant="overline" sx={{ fontWeight: 900, color: '#6366f1', letterSpacing: 1.5, fontSize: '0.75rem', lineHeight: 1 }}>PROJECT</Typography>
               <Box sx={{ bgcolor: '#ede9fe', color: '#6366f1', fontSize: '0.68rem', fontWeight: 700, px: 0.8, py: 0.2, borderRadius: 8 }}>{projects.length}</Box>
@@ -96,7 +95,7 @@ const Projects = () => {
                 <AddIcon sx={{ fontSize: 14 }} />
               </IconButton>
             </Box>
-            <Box sx={{ px: 2, py: 1.5, borderRight: '1px solid #e2e8f0', borderBottom: '3px solid #10b981', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ px: 2, py: 1.5, borderRight: '1px solid', borderColor: 'divider', borderBottom: '3px solid #10b981', display: 'flex', alignItems: 'center', gap: 1 }}>
               <BookmarkBorderOutlinedIcon sx={{ fontSize: 16, color: '#10b981' }} />
               <Typography variant="overline" sx={{ fontWeight: 900, color: '#10b981', letterSpacing: 1.5, fontSize: '0.75rem', lineHeight: 1 }}>STORY</Typography>
               <Box sx={{ bgcolor: '#d1fae5', color: '#059669', fontSize: '0.68rem', fontWeight: 700, px: 0.8, py: 0.2, borderRadius: 8 }}>{Object.values(storiesByProject).flat().length}</Box>
@@ -155,15 +154,14 @@ const Projects = () => {
                 return sum + tasks.reduce((tSum, t) => tSum + (t.estimate_hours || 0), 0);
               }, 0);
               return (
-                <Box key={proj._id} sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: projIdx < projects.length - 1 ? '2px solid #e2e8f0' : 'none' }}>
+                <Box key={proj._id} sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: projIdx < projects.length - 1 ? '2px solid' : 'none', borderBottomColor: 'divider' }}>
 
                   {/* PROJECT CARD */}
-                  {/* PROJECT CARD */}
-                  <Box sx={{ gridRow: `1 / ${rowCount + 1}`, borderRight: '1px solid #e2e8f0', p: 1.5, display: 'flex', flexDirection: 'column', alignSelf: 'start', position: 'sticky', top: 0 }}>
+                  <Box sx={{ gridRow: `1 / ${rowCount + 1}`, borderRight: '1px solid', borderColor: 'divider', p: 1.5, display: 'flex', flexDirection: 'column', alignSelf: 'start', position: 'sticky', top: 0 }}>
                     <Paper elevation={0} sx={{
                       pt: '10px', pb: '48px', px: '16px', borderRadius: '8px',
                       minHeight: '200px', position: 'relative',
-                      border: '1px solid #e2e8f0', bgcolor: '#fff',
+                      border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper',
                       borderLeft: '4px solid #6366f1',
                       transition: 'all 0.15s',
                       cursor: 'pointer',
@@ -267,9 +265,7 @@ const Projects = () => {
                                 }, 200);
                               }}
                               autoFocus
-                              size="small"
-                              variant="standard"
-                              inputProps={{ style: { fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', padding: 0 } }}
+                              inputProps={{ style: { fontSize: '1.15rem', fontWeight: 800, color: 'inherit', padding: 0 } }}
                               sx={{ width: '160px' }}
                             />
                             <IconButton
@@ -311,7 +307,7 @@ const Projects = () => {
                               '&:hover .project-title-edit-icon': { opacity: 1 }
                             }}
                           >
-                            <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.15rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5, flexGrow: 1 }}>
+                            <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.15rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5, flexGrow: 1 }}>
                               {proj.name}
                             </Typography>
                             <EditIcon className="project-title-edit-icon" sx={{ fontSize: 16, color: '#6366f1', opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }} />
@@ -409,11 +405,11 @@ const Projects = () => {
                       return (
                         <React.Fragment key={story._id}>
                           {/* STORY CARD */}
-                          <Box sx={{ borderRight: '1px solid #e2e8f0', borderTop: sIdx > 0 ? '1px solid #f1f5f9' : 'none', p: 1.5 }}>
+                          <Box sx={{ borderRight: '1px solid', borderRightColor: 'divider', borderTop: sIdx > 0 ? '1px solid' : 'none', borderTopColor: 'divider', p: 1.5 }}>
                             <Paper elevation={0} sx={{
                               pt: '10px', pb: '48px', px: '16px', borderRadius: '8px',
                               minHeight: '200px', position: 'relative',
-                              border: '1px solid #e2e8f0', bgcolor: '#fff',
+                              border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper',
                               borderLeft: '4px solid #10b981',
                               transition: 'all 0.15s',
                               cursor: 'pointer',
@@ -503,9 +499,7 @@ const Projects = () => {
                                         }, 200);
                                       }}
                                       autoFocus
-                                      size="small"
-                                      variant="standard"
-                                      inputProps={{ style: { fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', padding: 0 } }}
+                                      inputProps={{ style: { fontSize: '1.15rem', fontWeight: 800, color: 'inherit', padding: 0 } }}
                                       sx={{ width: '160px' }}
                                     />
                                     <IconButton
@@ -547,7 +541,7 @@ const Projects = () => {
                                       '&:hover .story-title-edit-icon': { opacity: 1 }
                                     }}
                                   >
-                                    <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.15rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5, flexGrow: 1 }}>
+                                    <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.15rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5, flexGrow: 1 }}>
                                       {story.name}
                                     </Typography>
                                     <EditIcon className="story-title-edit-icon" sx={{ fontSize: 16, color: '#6366f1', opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }} />
@@ -628,7 +622,7 @@ const Projects = () => {
                                   return (
                                     <Paper key={task._id} elevation={0} sx={{
                                       px: '8px', py: '7px', borderRadius: '6px',
-                                      border: '1px solid #e2e8f0', bgcolor: '#fff',
+                                      border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper',
                                       borderLeft: `3px solid ${isBug ? '#fca5a5' : '#facc15'}`,
                                       transition: 'all 0.15s',
                                       cursor: 'pointer',
@@ -691,8 +685,8 @@ const Projects = () => {
                                               autoFocus
                                               size="small"
                                               variant="standard"
-                                              inputProps={{ style: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a', padding: 0 } }}
-                                              sx={{ width: '120px' }}
+                                              inputProps={{ style: { fontSize: '0.88rem', fontWeight: 600, color: 'inherit', padding: 0 } }}
+                                              sx={{ width: '150px' }}
                                             />
                                             <IconButton
                                               size="small"
@@ -733,7 +727,7 @@ const Projects = () => {
                                               '&:hover .task-title-edit-icon': { opacity: 1 }
                                             }}
                                           >
-                                            <Typography sx={{ fontWeight: 600, color: '#0f172a', fontSize: '0.88rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5 }}>
+                                            <Typography sx={{ fontWeight: 600, color: 'text.primary', fontSize: '0.88rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5 }}>
                                               {task.name}
                                             </Typography>
                                             <EditIcon className="task-title-edit-icon" sx={{ fontSize: 16, color: '#6366f1', opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }} />
@@ -835,7 +829,7 @@ const Projects = () => {
         projects={projects}
         showProjectSelect={!activeStoryId && !taskModalIsEdit}
       />
-    </ThemeProvider>
+    </>
   );
 };
 

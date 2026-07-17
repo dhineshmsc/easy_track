@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Box, CssBaseline, ThemeProvider, Tabs, Tab, Card, CircularProgress
+  Box, CssBaseline, Tabs, Tab, Card, CircularProgress
 } from '@mui/material';
 
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
 import { useProjectData } from '../hooks/useProjectData';
-import appleTheme from '../theme';
 
 // Report subcomponents
 import ProjectReport from '../components/reports/ProjectReport';
@@ -29,7 +28,7 @@ const Reports = () => {
   const hasData = projects && projects.length >= 0;
 
   return (
-    <ThemeProvider theme={appleTheme}>
+    <>
       <CssBaseline />
       <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
 
@@ -101,7 +100,7 @@ const Reports = () => {
           </Box>
         </Box>
       </Box>
-    </ThemeProvider>
+    </>
   );
 };
 

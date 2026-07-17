@@ -1,21 +1,35 @@
 import React, { useState } from 'react';
-import { Box, Typography, TextField, IconButton, Tooltip } from '@mui/material';
+import { Box, Typography, TextField, IconButton, Tooltip, useTheme } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import TaskCard from './TaskCard';
 
-// Unique bg color per column status
-const columnBgColors = {
-  'Todo': { bg: '#f0f4ff', header: '#e0e8ff', border: '#c7d7fd' },
-  'In Progress': { bg: '#f0f9ff', header: '#dbeeff', border: '#bae0fd' },
-  'Code Review': { bg: '#faf5ff', header: '#ede9fe', border: '#d8b4fe' },
-  'Testing': { bg: '#fff7ed', header: '#ffedd5', border: '#fed7aa' },
-  'Deploy': { bg: '#f0fdf4', header: '#dcfce7', border: '#a7f3d0' },
-  'Done': { bg: '#f0fdf4', header: '#d1fae5', border: '#6ee7b7' },
-};
+// Color mappings for Light vs Dark modes
+const getColumnColors = (status, isDark) => {
+  const lightColors = {
+    'Todo':         { bg: '#f0f4ff', header: '#e0e8ff', border: '#c7d7fd' },
+    'In Progress':  { bg: '#f0f9ff', header: '#dbeeff', border: '#bae0fd' },
+    'Code Review':  { bg: '#faf5ff', header: '#ede9fe', border: '#d8b4fe' },
+    'Testing':      { bg: '#fff7ed', header: '#ffedd5', border: '#fed7aa' },
+    'Deploy':       { bg: '#f0fdf4', header: '#dcfce7', border: '#a7f3d0' },
+    'Done':         { bg: '#f0fdf4', header: '#d1fae5', border: '#6ee7b7' },
+    'default':      { bg: '#f8fafc', header: '#f1f5f9', border: '#e2e8f0' }
+  };
 
-const defaultColors = { bg: '#f8fafc', header: '#f1f5f9', border: '#e2e8f0' };
+  const darkColors = {
+    'Todo':         { bg: '#131924', header: '#1d273a', border: '#2f3f5c' },
+    'In Progress':  { bg: '#101d28', header: '#172b3c', border: '#25445d' },
+    'Code Review':  { bg: '#1b1429', header: '#291d3e', border: '#422f64' },
+    'Testing':      { bg: '#251a10', header: '#382818', border: '#594026' },
+    'Deploy':       { bg: '#102219', header: '#183426', border: '#26533d' },
+    'Done':         { bg: '#0b1f17', header: '#122e23', border: '#1c4a38' },
+    'default':      { bg: '#1c1c1e', header: '#2c2c2e', border: '#38383f' }
+  };
+
+  const set = isDark ? darkColors : lightColors;
+  return set[status] || set['default'];
+};
 
 const TaskColumn = ({
   status,
@@ -31,7 +45,9 @@ const TaskColumn = ({
   onDragStart,
   onPartialUpdateTask
 }) => {
-  const colors = columnBgColors[status] || defaultColors;
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const colors = getColumnColors(status, isDark);
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(status === 'Todo' ? 'To Do' : status);

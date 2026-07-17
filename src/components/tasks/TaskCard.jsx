@@ -47,13 +47,14 @@ const TaskCard = ({
       sx={{
         p: 1.2,
         borderRadius: '8px',
-        border: '1px solid #e2e8f0',
-        bgcolor: '#fff',
+        border: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
         borderLeft: `4px solid ${isBug ? '#ef4444' : '#eab308'}`,
         transition: 'all 0.15s',
         cursor: 'pointer',
         '&:hover': {
-          bgcolor: '#e2e8f0',
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2c2c2e' : '#f1f5f9',
           boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
           transform: 'translateY(-1px)',
           borderColor: isBug ? '#ef4444' : '#eab308'
@@ -160,7 +161,7 @@ const TaskCard = ({
             autoFocus
             size="small"
             variant="standard"
-            inputProps={{ style: { fontSize: '1.15rem', fontWeight: 600, color: '#0f172a', padding: 0 } }}
+            inputProps={{ style: { fontSize: '1.15rem', fontWeight: 600, color: 'inherit', padding: 0 } }}
             sx={{ width: '200px' }}
           />
           <IconButton
@@ -202,7 +203,7 @@ const TaskCard = ({
         >
           <Typography sx={{
             fontWeight: 600,
-            color: '#0f172a',
+            color: 'text.primary',
             fontSize: '1.15rem',
             lineHeight: 1.2,
             mr: 0.5,

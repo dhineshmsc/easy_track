@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Box, ThemeProvider, CssBaseline, Typography, Button, Dialog,
+  Box, CssBaseline, Typography, Button, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, IconButton,
   FormControl, InputLabel, Select, MenuItem, Chip, Avatar, CircularProgress, Switch
 } from '@mui/material';
@@ -13,7 +13,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
 import { toast } from 'react-hot-toast';
-import appleTheme from '../theme';
 import { getAvatarColor } from '../utils/projectsHelper';
 
 const CustomStatusSwitch = styled(Switch)(({ theme }) => ({
@@ -335,7 +334,7 @@ const Users = () => {
   ];
 
   return (
-    <ThemeProvider theme={appleTheme}>
+    <>
       <CssBaseline />
       <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
         <Sidebar company={company} activeMenu="Users" />
@@ -485,7 +484,7 @@ const Users = () => {
           <Button onClick={handleCloseModal} variant="contained">Close</Button>
         </DialogActions>
       </Dialog>
-    </ThemeProvider>
+    </>
   );
 };
 

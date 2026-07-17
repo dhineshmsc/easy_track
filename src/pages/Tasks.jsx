@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Box, ThemeProvider, CssBaseline, Typography, TextField,
+  Box, CssBaseline, Typography, TextField,
   FormControl, InputLabel, Select, MenuItem, Button, Tooltip, IconButton,
   InputAdornment, Avatar
 } from '@mui/material';
@@ -12,7 +12,6 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
-import appleTheme from '../theme';
 import { useProjectData } from '../hooks/useProjectData';
 import { getUserInitials, getAvatarColor } from '../utils/projectsHelper';
 import TaskModal from '../components/projects/TaskModal';
@@ -186,9 +185,9 @@ const Tasks = () => {
   };
 
   return (
-    <ThemeProvider theme={appleTheme}>
+    <>
       <CssBaseline />
-      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: '#f8fafc' }}>
+      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
         
         {/* Left Sidebar */}
         <Sidebar activeMenu="Tasks" />
@@ -201,7 +200,7 @@ const Tasks = () => {
           <Box sx={{
             p: '10px',
             borderBottom: '1px solid #e2e8f0',
-            bgcolor: '#fff',
+            bgcolor: 'background.paper',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -209,7 +208,7 @@ const Tasks = () => {
             gap: 2
           }}>
             <Box>
-              <Typography variant="h5" fontWeight="800" sx={{ color: '#1d1d1f' }}>
+              <Typography variant="h5" fontWeight="800" sx={{ color: 'text.primary' }}>
                 Tasks Dashboard
               </Typography>
               <Typography variant="body2" sx={{ color: '#64748b', mt: 0.3 }}>
@@ -372,7 +371,7 @@ const Tasks = () => {
               flexGrow: 1,
               scrollBehavior: 'smooth',
               alignItems: 'stretch',
-              bgcolor: '#f8fafc',
+              bgcolor: 'background.default',
               '&::-webkit-scrollbar': { height: '8px' },
               '&::-webkit-scrollbar-track': { background: 'transparent' },
               '&::-webkit-scrollbar-thumb': {
@@ -437,7 +436,7 @@ const Tasks = () => {
         projects={projects}
         showProjectSelect={true}
       />
-    </ThemeProvider>
+    </>
   );
 };
 

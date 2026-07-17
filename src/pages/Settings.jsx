@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Box, CssBaseline, ThemeProvider, Typography, Card, CardContent, Button, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Divider, Grid, Switch
+  Box, CssBaseline, Typography, Card, CardContent, Button, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Divider, Grid, Switch
 } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SaveIcon from '@mui/icons-material/Save';
@@ -9,29 +9,36 @@ import { toast } from 'react-hot-toast';
 
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
-import appleTheme from '../theme';
+import { useThemeMode } from '../context/ThemeContext';
 
 const Settings = () => {
   const { company } = useParams();
   const username = localStorage.getItem('username') || '';
   const initialEmail = localStorage.getItem('email') || `${username.toLowerCase().replace(/\s+/g, '')}@company.com`;
   
+  const { mode, toggleColorMode } = useThemeMode();
+
   const [formData, setFormData] = useState({
     name: username,
     email: initialEmail,
     notifications: true,
-    theme: 'dark',
+    theme: mode,
     autoRefresh: true
   });
+
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, theme: mode }));
+  }, [mode]);
 
   const handleSave = (e) => {
     e.preventDefault();
     localStorage.setItem('username', formData.name);
+    toggleColorMode(formData.theme);
     toast.success('Settings saved successfully!');
   };
 
   return (
-    <ThemeProvider theme={appleTheme}>
+    <>
       <CssBaseline />
       <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
         <Sidebar activeMenu="Settings" />
@@ -150,7 +157,7 @@ const Settings = () => {
           </Box>
         </Box>
       </Box>
-    </ThemeProvider>
+    </>
   );
 };
 
