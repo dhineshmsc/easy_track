@@ -23,7 +23,18 @@ const AuthInterface = () => {
 
   return (
     <div className="app-container">
+      {/* Dynamic ambient glowing circles in the background */}
+      <div className="glow-circle glow-1"></div>
+      <div className="glow-circle glow-2"></div>
+
       <div className="glass-panel">
+        {/* Brand Header */}
+        <div className="brand-header">
+          <img src="/logo.png" alt="Easy Track Logo" className="brand-logo" />
+          <h1 className="brand-title">Easy Track</h1>
+          <p className="brand-quote">Your Productivity Partner</p>
+        </div>
+
         <div className="tab-container">
           <button 
             className={`tab ${currentView === 'login' || currentView === 'forgot' || currentView === 'update_password' ? 'active' : ''}`} 
