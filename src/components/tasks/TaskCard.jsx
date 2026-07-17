@@ -65,58 +65,75 @@ const TaskCard = ({
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', mb: 0.8 }}>
         {/* Badges — clip when overflow, never push delete off screen */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flex: 1, overflow: 'hidden', minWidth: 0 }}>
-          {isBug ? (
-            <BugReportOutlinedIcon sx={{ fontSize: 16, color: '#ef4444', flexShrink: 0 }} />
-          ) : (
-            <TaskAltOutlinedIcon sx={{ fontSize: 16, color: '#eab308', flexShrink: 0 }} />
-          )}
-          
-          <Typography sx={{
-            fontWeight: 700,
-            color: isBug ? '#ef4444' : '#eab308',
-            fontSize: '0.62rem',
-            bgcolor: isBug ? '#fef2f2' : '#fef9c3',
-            px: 0.6,
-            py: 0.1,
-            borderRadius: '3px',
-            flexShrink: 0
-          }}>
-            {task.custom_id}
-          </Typography>
-          
-          <Box sx={{
-            bgcolor: pColor.bg,
-            color: pColor.color,
-            fontSize: '0.62rem',
-            fontWeight: 700,
-            px: 0.6,
-            py: 0.1,
-            borderRadius: '3px',
-            border: `1px solid ${pColor.border}`,
-            flexShrink: 0
-          }}>
-            {task.priority || 'Medium'}
-          </Box>
-          
+          <Tooltip title={isBug ? 'Bug' : 'Task'} arrow placement="top">
+            <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              {isBug ? (
+                <BugReportOutlinedIcon sx={{ fontSize: 16, color: '#ef4444' }} />
+              ) : (
+                <TaskAltOutlinedIcon sx={{ fontSize: 16, color: '#eab308' }} />
+              )}
+            </Box>
+          </Tooltip>
+
+          <Tooltip title={`Serial No: ${task.custom_id}`} arrow placement="top">
+            <Typography sx={{
+              fontWeight: 700,
+              color: isBug ? '#ef4444' : '#eab308',
+              fontSize: '0.62rem',
+              bgcolor: isBug ? '#fef2f2' : '#fef9c3',
+              px: 0.6,
+              py: 0.1,
+              borderRadius: '3px',
+              flexShrink: 0,
+              cursor: 'default'
+            }}>
+              {task.custom_id}
+            </Typography>
+          </Tooltip>
+
+          <Tooltip title={`Priority: ${task.priority || 'Medium'}`} arrow placement="top">
+            <Box sx={{
+              bgcolor: pColor.bg,
+              color: pColor.color,
+              fontSize: '0.62rem',
+              fontWeight: 700,
+              px: 0.6,
+              py: 0.1,
+              borderRadius: '3px',
+              border: `1px solid ${pColor.border}`,
+              flexShrink: 0,
+              cursor: 'default'
+            }}>
+              {task.priority || 'Medium'}
+            </Box>
+          </Tooltip>
+
           {task.estimate_hours > 0 && (
-            <Box sx={{ bgcolor: '#eff6ff', color: '#1e40af', fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: '1px solid #bfdbfe', flexShrink: 0 }}>
-              {task.estimate_hours}h
-            </Box>
+            <Tooltip title={`Estimate Hours: ${task.estimate_hours}h`} arrow placement="top">
+              <Box sx={{ bgcolor: '#eff6ff', color: '#1e40af', fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: '1px solid #bfdbfe', flexShrink: 0, cursor: 'default' }}>
+                {task.estimate_hours}h
+              </Box>
+            </Tooltip>
           )}
+
           {task.end_date && (
-            <Box sx={{ bgcolor: '#fff1f2', color: '#e11d48', fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: '1px solid #fecdd3', flexShrink: 0 }}>
-              {typeof task.end_date === 'string' ? task.end_date.substring(0, 10) : new Date(task.end_date).toISOString().substring(0, 10)}
-            </Box>
+            <Tooltip title={`Due Date: ${typeof task.end_date === 'string' ? task.end_date.substring(0, 10) : new Date(task.end_date).toISOString().substring(0, 10)}`} arrow placement="top">
+              <Box sx={{ bgcolor: '#fff1f2', color: '#e11d48', fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: '1px solid #fecdd3', flexShrink: 0, cursor: 'default' }}>
+                {typeof task.end_date === 'string' ? task.end_date.substring(0, 10) : new Date(task.end_date).toISOString().substring(0, 10)}
+              </Box>
+            </Tooltip>
           )}
         </Box>
 
         {/* Delete button — always visible, never pushed off */}
-        <IconButton size="small" sx={{ p: 0.2, flexShrink: 0 }} onClick={(e) => {
-          e.stopPropagation();
-          onDeleteTask(task._id);
-        }}>
-          <DeleteIcon sx={{ fontSize: 14, color: '#fca5a5' }} />
-        </IconButton>
+        <Tooltip title="Delete Task" arrow placement="top">
+          <IconButton size="small" sx={{ p: 0.2, flexShrink: 0 }} onClick={(e) => {
+            e.stopPropagation();
+            onDeleteTask(task._id);
+          }}>
+            <DeleteIcon sx={{ fontSize: 14, color: '#fca5a5' }} />
+          </IconButton>
+        </Tooltip>
       </Box>
 
       {/* Task Name Inline Editing */}
@@ -143,8 +160,8 @@ const TaskCard = ({
             autoFocus
             size="small"
             variant="standard"
-            inputProps={{ style: { fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', padding: 0 } }}
-            sx={{ width: '150px' }}
+            inputProps={{ style: { fontSize: '1.15rem', fontWeight: 600, color: '#0f172a', padding: 0 } }}
+            sx={{ width: '200px' }}
           />
           <IconButton
             size="small"
@@ -186,13 +203,10 @@ const TaskCard = ({
           <Typography sx={{
             fontWeight: 600,
             color: '#0f172a',
-            fontSize: '0.85rem',
+            fontSize: '1.15rem',
             lineHeight: 1.2,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
             mr: 0.5,
-            maxWidth: '200px'
+            wordBreak: 'break-word',
           }}>
             {task.name}
           </Typography>

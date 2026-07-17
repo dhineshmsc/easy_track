@@ -1,6 +1,21 @@
-import React from 'react';
-import { Box, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography, TextField, IconButton, Tooltip } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import TaskCard from './TaskCard';
+
+// Unique bg color per column status
+const columnBgColors = {
+  'Todo': { bg: '#f0f4ff', header: '#e0e8ff', border: '#c7d7fd' },
+  'In Progress': { bg: '#f0f9ff', header: '#dbeeff', border: '#bae0fd' },
+  'Code Review': { bg: '#faf5ff', header: '#ede9fe', border: '#d8b4fe' },
+  'Testing': { bg: '#fff7ed', header: '#ffedd5', border: '#fed7aa' },
+  'Deploy': { bg: '#f0fdf4', header: '#dcfce7', border: '#a7f3d0' },
+  'Done': { bg: '#f0fdf4', header: '#d1fae5', border: '#6ee7b7' },
+};
+
+const defaultColors = { bg: '#f8fafc', header: '#f1f5f9', border: '#e2e8f0' };
 
 const TaskColumn = ({
   status,
@@ -16,6 +31,20 @@ const TaskColumn = ({
   onDragStart,
   onPartialUpdateTask
 }) => {
+  const colors = columnBgColors[status] || defaultColors;
+
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleValue, setTitleValue] = useState(status === 'Todo' ? 'To Do' : status);
+
+  const handleSaveTitle = () => {
+    if (titleValue.trim()) setIsEditingTitle(false);
+  };
+
+  const handleCancelTitle = () => {
+    setTitleValue(status === 'Todo' ? 'To Do' : status);
+    setIsEditingTitle(false);
+  };
+
   return (
     <Box
       key={status}
@@ -35,31 +64,82 @@ const TaskColumn = ({
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: draggedOverColumn === status ? '#e2e8f0' : '#f1f5f9',
-        borderRadius: 3,
-        p: 1.5,
+        bgcolor: draggedOverColumn === status ? '#e2e8f0' : colors.bg,
+        border: `1.5px solid ${colors.border}`,
+        borderRadius: 1.5,
+        overflow: 'hidden',
         maxHeight: 'calc(100vh - 180px)',
-        transition: 'background-color 0.2s'
+        transition: 'background-color 0.2s, box-shadow 0.2s',
+        boxShadow: draggedOverColumn === status ? '0 0 0 2px #6366f1' : 'none',
       }}
     >
-      {/* Status Column Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexShrink: 0 }}>
-        <Typography variant="subtitle1" fontWeight="800" sx={{ color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: 1 }}>
-          {status === 'Todo' ? 'To Do' : status}
-          <Box component="span" sx={{
-            bgcolor: `${colHeaderColor}12`,
-            color: colHeaderColor,
-            fontSize: '0.72rem',
-            fontWeight: '800',
-            px: 1.2,
-            py: 0.2,
-            borderRadius: 4
-          }}>
-            {tasks.length}
+      {/* Column Header with unique bg */}
+      <Box sx={{
+        px: 1.5,
+        py: 1,
+        bgcolor: colors.header,
+        borderBottom: `1.5px solid ${colors.border}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        position: 'relative',
+      }}>
+        {isEditingTitle ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', flex: 1 }}>
+            <TextField
+              value={titleValue}
+              onChange={e => setTitleValue(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleSaveTitle();
+                if (e.key === 'Escape') handleCancelTitle();
+              }}
+              autoFocus
+              size="small"
+              variant="standard"
+              inputProps={{ style: { fontSize: '0.9rem', fontWeight: 800, color: '#1d1d1f', padding: 0, textAlign: 'center' } }}
+              sx={{ width: '120px' }}
+            />
+            <IconButton size="small" onClick={handleSaveTitle} sx={{ p: '2px', color: '#10b981' }}>
+              <CheckIcon sx={{ fontSize: 15 }} />
+            </IconButton>
+            <IconButton size="small" onClick={handleCancelTitle} sx={{ p: '2px', color: '#ef4444' }}>
+              <CloseIcon sx={{ fontSize: 15 }} />
+            </IconButton>
           </Box>
-        </Typography>
+        ) : (
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, flex: 1, cursor: 'pointer', '&:hover .col-edit-icon': { opacity: 1 } }}
+            onClick={() => setIsEditingTitle(true)}
+          >
+            <Typography
+              variant="subtitle2"
+              fontWeight="800"
+              sx={{ color: colHeaderColor || '#1d1d1f', fontSize: '0.88rem', userSelect: 'none' }}
+            >
+              {titleValue}
+            </Typography>
+            <EditIcon className="col-edit-icon" sx={{ fontSize: 13, color: colHeaderColor, opacity: 0, transition: 'opacity 0.2s' }} />
+
+            {/* Task count badge centered with title */}
+            <Box sx={{
+              bgcolor: `${colHeaderColor}22`,
+              color: colHeaderColor,
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              px: 1,
+              py: 0.2,
+              borderRadius: 4,
+              minWidth: 22,
+              textAlign: 'center',
+              flexShrink: 0,
+            }}>
+              {tasks.length}
+            </Box>
+          </Box>
+        )}
       </Box>
-      
+
       {/* Vertical Scrollable Column Content */}
       <Box
         className="status-tasks-list"
@@ -69,7 +149,7 @@ const TaskColumn = ({
           gap: 1,
           overflowY: 'auto',
           flexGrow: 1,
-          pr: 0.5,
+          p: 1,
           '&::-webkit-scrollbar': { width: '5px' },
           '&::-webkit-scrollbar-track': { background: 'transparent' },
           '&::-webkit-scrollbar-thumb': {

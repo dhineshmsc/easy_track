@@ -17,15 +17,15 @@ import appleTheme from '../theme';
 import { getAvatarColor } from '../utils/projectsHelper';
 
 const CustomStatusSwitch = styled(Switch)(({ theme }) => ({
-  width: 90,
-  height: 32,
+  width: 76,
+  height: 26,
   padding: 0,
   display: 'flex',
   '& .MuiSwitch-switchBase': {
-    padding: 4,
+    padding: 3,
     color: '#fff',
     '&.Mui-checked': {
-      transform: 'translateX(58px)',
+      transform: 'translateX(50px)',
       color: '#fff',
       '& + .MuiSwitch-track': {
         backgroundColor: '#4caf50',
@@ -34,11 +34,11 @@ const CustomStatusSwitch = styled(Switch)(({ theme }) => ({
         '&:before': {
           content: '"ACTIVE"',
           position: 'absolute',
-          left: 10,
+          left: 8,
           top: '50%',
           transform: 'translateY(-50%)',
           color: '#fff',
-          fontSize: '0.7rem',
+          fontSize: '0.62rem',
           fontWeight: 'bold',
         },
         '&:after': {
@@ -48,23 +48,23 @@ const CustomStatusSwitch = styled(Switch)(({ theme }) => ({
     },
   },
   '& .MuiSwitch-thumb': {
-    width: 24,
-    height: 24,
+    width: 20,
+    height: 20,
     boxShadow: 'none',
   },
   '& .MuiSwitch-track': {
-    borderRadius: 32 / 2,
+    borderRadius: 26 / 2,
     backgroundColor: '#f44336',
     opacity: 1,
     position: 'relative',
     '&:after': {
       content: '"INACTIVE"',
       position: 'absolute',
-      right: 8,
+      right: 6,
       top: '50%',
       transform: 'translateY(-50%)',
       color: '#fff',
-      fontSize: '0.7rem',
+      fontSize: '0.62rem',
       fontWeight: 'bold',
     },
   },
@@ -272,7 +272,8 @@ const Users = () => {
     { 
       field: 'name', 
       headerName: 'Name', 
-      width: 250,
+      flex: 1.5,
+      minWidth: 160,
       headerAlign: 'center',
       align: 'center',
       renderCell: (params) => (
@@ -284,13 +285,14 @@ const Users = () => {
         </Box>
       )
     },
-    { field: 'email', headerName: 'Email', width: 220 },
-    { field: 'designation', headerName: 'Designation', width: 150 },
-    { field: 'role', headerName: 'Role', width: 130 },
+    { field: 'email', headerName: 'Email', flex: 2, minWidth: 180 },
+    { field: 'designation', headerName: 'Designation', flex: 1.2, minWidth: 130 },
+    { field: 'role', headerName: 'Role', flex: 1, minWidth: 110 },
     {
       field: 'status',
       headerName: 'Status',
-      width: 130,
+      flex: 1,
+      minWidth: 100,
       headerAlign: 'center',
       align: 'center',
       renderCell: (params) => (
@@ -306,7 +308,8 @@ const Users = () => {
       field: 'actions',
       type: 'actions',
       headerName: 'Actions',
-      width: 150,
+      flex: 1,
+      minWidth: 100,
       getActions: (params) => {
         const actions = [];
 
