@@ -12,6 +12,8 @@ import Board from './pages/Board';
 import Users from './pages/Users';
 import Tasks from './pages/Tasks';
 import Reports from './pages/Reports';
+import Notifications from './pages/Notifications';
+import Settings from './pages/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const AuthInterface = () => {
@@ -80,6 +82,8 @@ function App() {
         <Route path="/:company/tasks"     element={<ProtectedRoute element={<Tasks />} />} />
         <Route path="/:company/users"     element={<ProtectedRoute element={<Users />} />} />
         <Route path="/:company/reports"   element={<ProtectedRoute element={<Reports />} />} />
+        <Route path="/:company/notifications" element={<ProtectedRoute element={<Notifications />} />} />
+        <Route path="/:company/settings"      element={<ProtectedRoute element={<Settings />} />} />
       </Routes>
     </BrowserRouter>
   );
