@@ -30,14 +30,14 @@ const TaskColumn = ({
         handleDrop(e, status);
       }}
       sx={{
-        width: 300,
-        minWidth: 300,
+        width: 295,
+        minWidth: 295,
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
         bgcolor: draggedOverColumn === status ? '#e2e8f0' : '#f1f5f9',
         borderRadius: 3,
-        p: 2,
+        p: 1.5,
         maxHeight: 'calc(100vh - 180px)',
         transition: 'background-color 0.2s'
       }}
@@ -66,7 +66,7 @@ const TaskColumn = ({
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 1.5,
+          gap: 1,
           overflowY: 'auto',
           flexGrow: 1,
           pr: 0.5,

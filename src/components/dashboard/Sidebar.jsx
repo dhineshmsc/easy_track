@@ -15,7 +15,15 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
   const navigate = useNavigate();
   const params = useParams();
   const currentCompany = company || params.company;
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(() => {
+    return localStorage.getItem('sidebarMinimized') === 'true';
+  });
+
+  const toggleMinimized = () => {
+    const next = !isMinimized;
+    setIsMinimized(next);
+    localStorage.setItem('sidebarMinimized', String(next));
+  };
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: `/${currentCompany}/dashboard` },
@@ -52,7 +60,7 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
             <Typography variant="h6" fontWeight="bold">Easy Task</Typography>
           </Box>
         )}
-        <IconButton onClick={() => setIsMinimized(!isMinimized)} size="small">
+        <IconButton onClick={toggleMinimized} size="small">
           {isMinimized ? <ChevronRightIcon /> : <ChevronLeftIcon />}
         </IconButton>
       </Box>

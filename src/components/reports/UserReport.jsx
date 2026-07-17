@@ -166,57 +166,40 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
   };
 
   const columns = [
-    { field: 'employeeId', headerName: 'Employee ID', width: 120 },
+    { field: 'employeeId', headerName: 'Emp ID', width: 90 },
     {
       field: 'name',
       headerName: 'User Name',
-      width: 180,
+      flex: 1.5,
+      minWidth: 120,
       renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%' }}>
-          <Avatar sx={{ width: 24, height: 24, fontSize: '0.7rem', bgcolor: getAvatarColor(params.value), fontWeight: 'bold', color: '#fff' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+          <Avatar sx={{ width: 20, height: 20, fontSize: '0.6rem', bgcolor: getAvatarColor(params.value), fontWeight: 'bold', color: '#fff' }}>
             {params.value.charAt(0)}
           </Avatar>
-          <strong style={{ color: '#10b981' }}>{params.value}</strong>
+          <strong style={{ color: '#10b981', fontSize: '0.78rem' }}>{params.value}</strong>
         </Box>
       )
     },
-    { field: 'email', headerName: 'Email', width: 220 },
-    { field: 'role', headerName: 'Role', width: 140 },
-    { field: 'assignedProjects', headerName: 'Assigned Projects', width: 200, renderCell: (params) => <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>{params.value}</span> },
-    { field: 'assignedStories', headerName: 'Stories', width: 80, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'assignedTasks', headerName: 'Tasks', width: 80, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'todo', headerName: 'Todo', width: 70, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'inProgress', headerName: 'In Progress', width: 100, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'testing', headerName: 'Testing', width: 80, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'done', headerName: 'Done', width: 70, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'completedTasks', headerName: 'Completed Tasks', width: 130, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: '#16a34a' }}>{params.value}</strong> },
-    { field: 'totalHours', headerName: 'Total Hours', width: 110, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'overdueTasks', headerName: 'Overdue Tasks', width: 130, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: params.value > 0 ? '#ef4444' : '#10b981' }}>{params.value}</strong> },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 120,
-      sortable: false,
-      renderCell: (params) => (
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<VisibilityIcon />}
-          onClick={() => handleOpenView(params.row)}
-          sx={{ textTransform: 'none', border: '1px solid rgba(255,255,255,0.08)', color: 'text.primary' }}
-        >
-          View
-        </Button>
-      )
-    }
+    { field: 'email', headerName: 'Email', flex: 2, minWidth: 150 },
+    { field: 'role', headerName: 'Role', flex: 1, minWidth: 90 },
+    { field: 'assignedStories', headerName: 'Stories', width: 70, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'assignedTasks', headerName: 'Tasks', width: 65, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'todo', headerName: 'Todo', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'inProgress', headerName: 'In Prog.', width: 75, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'testing', headerName: 'Test', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'done', headerName: 'Done', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'completedTasks', headerName: 'Completed', width: 90, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: '#16a34a', fontSize: '0.78rem' }}>{params.value}</strong> },
+    { field: 'totalHours', headerName: 'Hrs', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'overdueTasks', headerName: 'Overdue', width: 75, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: params.value > 0 ? '#ef4444' : '#10b981', fontSize: '0.78rem' }}>{params.value}</strong> },
   ];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       {/* Filters Card */}
       <Card sx={{ border: '1px solid rgba(255,255,255,0.06)', bgcolor: 'background.paper', borderRadius: 3 }}>
         <CardContent sx={{ p: '10px' }}>
-          <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 2 }}>User Filter Config</Typography>
+          <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 1.5 }}>User Filter Config</Typography>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} sm={6} md={3} lg={2.4}>
               <FormControl size="small" fullWidth>
@@ -270,34 +253,46 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
 
       {/* Main Grid Card */}
       <Card sx={{ border: '1px solid rgba(255,255,255,0.06)', bgcolor: 'background.paper', borderRadius: 3 }}>
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap', gap: 1.5 }}>
-          <Typography variant="subtitle1" fontWeight="700">User Performance Matrix</Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button variant="outlined" size="small" startIcon={<FileDownloadIcon />} onClick={handleExportCSV} sx={{ border: '1px solid rgba(255,255,255,0.08)', color: 'text.primary', textTransform: 'none' }}>
-              Export XLSX
-            </Button>
-          </Box>
+        <Box sx={{ px: 2, py: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap', gap: 1 }}>
+          <Typography variant="subtitle2" fontWeight="700">User Performance Matrix</Typography>
+          <Button variant="outlined" size="small" startIcon={<FileDownloadIcon />} onClick={handleExportCSV} sx={{ border: '1px solid rgba(255,255,255,0.08)', color: 'text.primary', textTransform: 'none', fontSize: '0.75rem' }}>
+            Export XLSX
+          </Button>
         </Box>
-        <Box sx={{ height: 400, width: '100%' }}>
+        <Box sx={{ width: '100%' }}>
           <DataGrid
             rows={filteredData}
             columns={columns}
+            rowHeight={36}
+            columnHeaderHeight={38}
             pageSizeOptions={[10, 20, 50]}
             initialState={{
               pagination: { paginationModel: { pageSize: 10 } }
             }}
             disableRowSelectionOnClick
+            autoHeight
             sx={{
               border: 'none',
+              fontSize: '0.78rem',
               '& .MuiDataGrid-columnHeaders': {
                 bgcolor: 'rgba(255, 255, 255, 0.02)',
-                borderBottom: '1px solid rgba(255,255,255,0.06)'
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                minHeight: '38px !important',
+                maxHeight: '38px !important',
+                lineHeight: '38px',
               },
               '& .MuiDataGrid-cell': {
-                borderBottom: '1px solid rgba(255,255,255,0.04)'
+                borderBottom: '1px solid rgba(255,255,255,0.04)',
+                py: 0,
               },
               '& .MuiDataGrid-row:hover': {
                 bgcolor: 'rgba(255, 255, 255, 0.02)'
+              },
+              '& .MuiDataGrid-footerContainer': {
+                minHeight: 40,
+              },
+              '& .MuiTablePagination-root': {
+                fontSize: '0.75rem',
               }
             }}
           />

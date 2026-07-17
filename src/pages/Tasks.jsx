@@ -199,8 +199,7 @@ const Tasks = () => {
           
           {/* Page Header and Controls */}
           <Box sx={{
-            px: 4,
-            py: 3,
+            p: '10px',
             borderBottom: '1px solid #e2e8f0',
             bgcolor: '#fff',
             display: 'flex',
@@ -368,7 +367,7 @@ const Tasks = () => {
             sx={{
               p: '10px',
               display: 'flex',
-              gap: 3,
+              gap: '20px',
               overflowX: 'auto',
               flexGrow: 1,
               scrollBehavior: 'smooth',

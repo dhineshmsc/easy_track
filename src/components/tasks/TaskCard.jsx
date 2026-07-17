@@ -45,7 +45,7 @@ const TaskCard = ({
       draggable
       onDragStart={(e) => onDragStart(e, task._id)}
       sx={{
-        p: 1.5,
+        p: 1.2,
         borderRadius: '8px',
         border: '1px solid #e2e8f0',
         bgcolor: '#fff',
@@ -61,61 +61,62 @@ const TaskCard = ({
       }}
       onClick={() => onTaskClick(task)}
     >
-      {/* Card Header Row: Icon, Custom ID, Priority, Estimate, Delete */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 1, flexWrap: 'wrap' }}>
-        {isBug ? (
-          <BugReportOutlinedIcon sx={{ fontSize: 16, color: '#ef4444', flexShrink: 0 }} />
-        ) : (
-          <TaskAltOutlinedIcon sx={{ fontSize: 16, color: '#eab308', flexShrink: 0 }} />
-        )}
-        
-        <Typography sx={{
-          fontWeight: 700,
-          color: isBug ? '#ef4444' : '#eab308',
-          fontSize: '0.62rem',
-          bgcolor: isBug ? '#fef2f2' : '#fef9c3',
-          px: 0.6,
-          py: 0.1,
-          borderRadius: '3px',
-          flexShrink: 0
-        }}>
-          {task.custom_id}
-        </Typography>
-        
-        <Box sx={{
-          bgcolor: pColor.bg,
-          color: pColor.color,
-          fontSize: '0.62rem',
-          fontWeight: 700,
-          px: 0.6,
-          py: 0.1,
-          borderRadius: '3px',
-          border: `1px solid ${pColor.border}`,
-          flexShrink: 0
-        }}>
-          {task.priority || 'Medium'}
-        </Box>
-        
-        {task.estimate_hours > 0 && (
-          <Box sx={{ bgcolor: '#eff6ff', color: '#1e40af', fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: '1px solid #bfdbfe', flexShrink: 0 }}>
-            {task.estimate_hours}h
-          </Box>
-        )}
-        {task.end_date && (
-          <Box sx={{ bgcolor: '#fff1f2', color: '#e11d48', fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: '1px solid #fecdd3', flexShrink: 0 }}>
-            {typeof task.end_date === 'string' ? task.end_date.substring(0, 10) : new Date(task.end_date).toISOString().substring(0, 10)}
-          </Box>
-        )}
-
-        {/* Delete button (aligned right) */}
-        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
-          <IconButton size="small" sx={{ p: 0.2 }} onClick={(e) => {
-            e.stopPropagation();
-            onDeleteTask(task._id);
+      {/* Card Header Row: Icon, Custom ID, Priority, Estimate, Date | Delete always visible */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', mb: 0.8 }}>
+        {/* Badges — clip when overflow, never push delete off screen */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flex: 1, overflow: 'hidden', minWidth: 0 }}>
+          {isBug ? (
+            <BugReportOutlinedIcon sx={{ fontSize: 16, color: '#ef4444', flexShrink: 0 }} />
+          ) : (
+            <TaskAltOutlinedIcon sx={{ fontSize: 16, color: '#eab308', flexShrink: 0 }} />
+          )}
+          
+          <Typography sx={{
+            fontWeight: 700,
+            color: isBug ? '#ef4444' : '#eab308',
+            fontSize: '0.62rem',
+            bgcolor: isBug ? '#fef2f2' : '#fef9c3',
+            px: 0.6,
+            py: 0.1,
+            borderRadius: '3px',
+            flexShrink: 0
           }}>
-            <DeleteIcon sx={{ fontSize: 14, color: '#fca5a5' }} />
-          </IconButton>
+            {task.custom_id}
+          </Typography>
+          
+          <Box sx={{
+            bgcolor: pColor.bg,
+            color: pColor.color,
+            fontSize: '0.62rem',
+            fontWeight: 700,
+            px: 0.6,
+            py: 0.1,
+            borderRadius: '3px',
+            border: `1px solid ${pColor.border}`,
+            flexShrink: 0
+          }}>
+            {task.priority || 'Medium'}
+          </Box>
+          
+          {task.estimate_hours > 0 && (
+            <Box sx={{ bgcolor: '#eff6ff', color: '#1e40af', fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: '1px solid #bfdbfe', flexShrink: 0 }}>
+              {task.estimate_hours}h
+            </Box>
+          )}
+          {task.end_date && (
+            <Box sx={{ bgcolor: '#fff1f2', color: '#e11d48', fontSize: '0.65rem', fontWeight: 700, px: 0.6, py: 0.1, borderRadius: '3px', border: '1px solid #fecdd3', flexShrink: 0 }}>
+              {typeof task.end_date === 'string' ? task.end_date.substring(0, 10) : new Date(task.end_date).toISOString().substring(0, 10)}
+            </Box>
+          )}
         </Box>
+
+        {/* Delete button — always visible, never pushed off */}
+        <IconButton size="small" sx={{ p: 0.2, flexShrink: 0 }} onClick={(e) => {
+          e.stopPropagation();
+          onDeleteTask(task._id);
+        }}>
+          <DeleteIcon sx={{ fontSize: 14, color: '#fca5a5' }} />
+        </IconButton>
       </Box>
 
       {/* Task Name Inline Editing */}
@@ -215,14 +216,23 @@ const TaskCard = ({
         {assignee ? (
           <Tooltip title={assignee.name} arrow>
             <Avatar sx={{
-              width: 20,
-              height: 20,
-              fontSize: '0.6rem',
+              width: 24,
+              height: 24,
+              fontSize: '0.85rem',
               bgcolor: getAvatarColor(assignee.name),
-              fontWeight: 'bold',
-              color: '#fff'
+              fontWeight: 700,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              letterSpacing: 0,
+              lineHeight: '24px',
+              userSelect: 'none',
             }}>
-              {getUserInitials(task.assigned_user, users)}
+              <Box component="span" sx={{ display: 'block', textAlign: 'center', lineHeight: 1, mt: '1px' }}>
+                {getUserInitials(task.assigned_user, users)}
+              </Box>
             </Avatar>
           </Tooltip>
         ) : (
