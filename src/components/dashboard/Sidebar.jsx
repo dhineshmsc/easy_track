@@ -55,9 +55,21 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
         gap: isMinimized ? 0 : 2 
       }}>
         {!isMinimized && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ width: 32, height: 32, bgcolor: 'primary.main', borderRadius: 1 }} />
-            <Typography variant="h6" fontWeight="bold">Easy Task</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              component="img"
+              src="/logo.png"
+              alt="Logo"
+              sx={{ width: 32, height: 32, borderRadius: 1, flexShrink: 0, objectFit: 'contain' }}
+            />
+            <Box>
+              <Typography variant="h6" fontWeight="bold" sx={{ lineHeight: 1.1, fontSize: '1rem', color: 'text.primary' }}>
+                Easy Task
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.62rem', fontWeight: 500, display: 'block', mt: 0.2, whiteSpace: 'nowrap' }}>
+                Your Productivity Partner
+              </Typography>
+            </Box>
           </Box>
         )}
         <IconButton onClick={toggleMinimized} size="small">
@@ -67,7 +79,12 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
       
       {isMinimized && (
          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-           <Box sx={{ width: 32, height: 32, bgcolor: 'primary.main', borderRadius: 1 }} />
+           <Box
+             component="img"
+             src="/logo.png"
+             alt="Logo"
+             sx={{ width: 32, height: 32, borderRadius: 1, objectFit: 'contain' }}
+           />
          </Box>
       )}
 
