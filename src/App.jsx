@@ -23,9 +23,10 @@ const AuthInterface = () => {
 
   return (
     <div className="app-container">
-      {/* Dynamic ambient glowing circles in the background */}
-      <div className="glow-circle glow-1"></div>
-      <div className="glow-circle glow-2"></div>
+      {/* Background Video */}
+      <video autoPlay loop muted playsInline className="background-video">
+        <source src="/login.mp4" type="video/mp4" />
+      </video>
 
       <div className="glass-panel">
         {/* Brand Header */}

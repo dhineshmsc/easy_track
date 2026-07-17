@@ -34,43 +34,15 @@ body, html {
   overflow: hidden;
 }
 
-/* Ambient Glow Background Circles */
-.glow-circle {
+/* Background Video Style */
+.background-video {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   z-index: 1;
-  opacity: 0.25;
-  animation: glowMove 15s infinite alternate ease-in-out;
-}
-
-.glow-1 {
-  width: 320px;
-  height: 320px;
-  background: radial-gradient(circle, rgba(0, 102, 204, 0.2) 0%, rgba(99, 102, 241, 0.05) 70%);
-  top: 15%;
-  left: 20%;
-}
-
-.glow-2 {
-  width: 360px;
-  height: 360px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(99, 102, 241, 0.03) 80%);
-  bottom: 15%;
-  right: 20%;
-  animation-delay: -5s;
-}
-
-@keyframes glowMove {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(30px, -30px) scale(1.08);
-  }
-  100% {
-    transform: translate(-20px, 15px) scale(0.95);
-  }
 }
 
 /* Brand Header inside card */
