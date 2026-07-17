@@ -14,6 +14,7 @@ import Tasks from './pages/Tasks';
 import Reports from './pages/Reports';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
+import Documents from './pages/Documents';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { ThemeContextProvider } from './context/ThemeContext';
 
@@ -98,6 +99,7 @@ function App() {
           <Route path="/:company/reports"   element={<ProtectedRoute element={<Reports />} />} />
           <Route path="/:company/notifications" element={<ProtectedRoute element={<Notifications />} />} />
           <Route path="/:company/settings"      element={<ProtectedRoute element={<Settings />} />} />
+          <Route path="/:company/documents"     element={<ProtectedRoute element={<Documents />} />} />
         </Routes>
       </BrowserRouter>
     </ThemeContextProvider>

@@ -9,6 +9,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import BookIcon from '@mui/icons-material/Book';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
@@ -33,6 +34,7 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
     { text: 'Reports', icon: <AssessmentIcon />, path: `/${currentCompany}/reports` },
     { text: 'Notifications', icon: <NotificationsIcon />, path: `/${currentCompany}/notifications` },
     { text: 'Settings', icon: <SettingsIcon />, path: `/${currentCompany}/settings` },
+    { text: 'Documents', icon: <BookIcon />, path: `/${currentCompany}/documents` },
   ];
 
   return (
