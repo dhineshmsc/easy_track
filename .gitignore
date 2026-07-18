@@ -34,3 +34,6 @@ __pycache__/
 venv/
 env/
 .venv/
+
+# Next.js
+.next/
