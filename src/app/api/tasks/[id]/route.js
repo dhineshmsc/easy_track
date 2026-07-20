@@ -9,7 +9,7 @@ export async function PUT(req, { params }) {
     const body = await req.json();
 
     const updateData = {};
-    const allowedFields = ['name', 'description', 'type', 'status', 'estimate_hours', 'assigned_user', 'reporter', 'end_date', 'priority'];
+    const allowedFields = ['name', 'description', 'type', 'status', 'estimate_hours', 'assigned_user', 'reporter', 'end_date', 'priority', 'image_path'];
     for (const field of allowedFields) {
       if (body[field] !== undefined && body[field] !== null) {
         if (field === 'end_date' && body[field]) {

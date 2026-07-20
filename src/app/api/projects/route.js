@@ -23,7 +23,7 @@ export async function GET(req) {
       const stories = await storiesCol.find({ project_id: { $in: project_ids } }).sort({ s_seq: 1 }).toArray();
       const story_ids = stories.map(s => String(s._id));
 
-      const tasks = await tasksCol.find({ story_id: { $in: story_ids } }).sort({ t_seq: 1 }).toArray();
+      const tasks = await tasksCol.find({ story_id: { $in: story_ids } }).sort({ created_at: -1 }).toArray();
 
       return NextResponse.json({
         projects: projects.map(p => {

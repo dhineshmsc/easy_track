@@ -829,6 +829,7 @@ const Projects = () => {
         onSave={handleSaveTask}
         projects={projects}
         showProjectSelect={!activeStoryId && !taskModalIsEdit}
+        activeTaskId={activeTaskId}
       />
     </>
   );

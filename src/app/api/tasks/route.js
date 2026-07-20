@@ -20,7 +20,7 @@ export async function GET(req) {
       query = { story_id: { $in: story_ids_param.split(',') } };
     }
 
-    const cursor = tasksCol.find(query).sort({ t_seq: 1 });
+    const cursor = tasksCol.find(query).sort({ created_at: -1 });
     const docs = await cursor.toArray();
 
     const tasks = docs.map(doc => {
@@ -50,7 +50,7 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { story_id, type, name, description, estimate_hours, assigned_user, reporter, end_date, priority, status } = body;
+    const { story_id, type, name, description, estimate_hours, assigned_user, reporter, end_date, priority, status, image_path } = body;
 
     if (!story_id || !type || !name) {
       return NextResponse.json({ detail: "story_id, type, and name are required" }, { status: 400 });
@@ -81,6 +81,7 @@ export async function POST(req) {
       end_date: end_date ? new Date(end_date) : null,
       priority: priority || 'Medium',
       status: status || 'To Do',
+      image_path: image_path || null,
       t_seq,
       custom_id,
       created_at: new Date()

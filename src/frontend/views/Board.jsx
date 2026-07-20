@@ -8,6 +8,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
 import { toast } from 'react-hot-toast';
+import TaskModal from '../components/projects/TaskModal';
 
 const Board = () => {
   const { company, projectId } = useParams();
@@ -19,7 +20,22 @@ const Board = () => {
 
   // Modals
   const [storyModal, setStoryModal] = useState({ open: false, isEdit: false, id: null, name: '', description: '' });
-  const [taskModal, setTaskModal] = useState({ open: false, isEdit: false, id: null, storyId: null, type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0 });
+  const [taskModal, setTaskModal] = useState({
+    open: false,
+    isEdit: false,
+    id: null,
+    storyId: null,
+    type: 'Task',
+    status: 'Todo',
+    name: '',
+    description: '',
+    estimateHours: 0,
+    assigned_user: '',
+    reporter: '',
+    end_date: '',
+    priority: 'Medium',
+    labels: []
+  });
 
   const fetchBoardData = async () => {
     try {
@@ -98,26 +114,67 @@ const Board = () => {
   };
 
   // --- Task Handlers ---
-  const handleSaveTask = async () => {
+  const handleSaveTask = async (submittedData) => {
     try {
+      const dataToSave = submittedData || taskModal;
       let res;
       if (taskModal.isEdit) {
         res = await fetch(`${(process.env.NEXT_PUBLIC_API_URL || '')}/tasks/${taskModal.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: taskModal.name, description: taskModal.description, type: taskModal.type, status: taskModal.status, estimate_hours: parseFloat(taskModal.estimateHours) || 0 })
+          body: JSON.stringify({
+            name: dataToSave.name,
+            description: dataToSave.description,
+            type: dataToSave.type,
+            status: dataToSave.status === 'Todo' ? 'To Do' : dataToSave.status,
+            estimate_hours: parseFloat(dataToSave.estimateHours) || 0,
+            assigned_user: dataToSave.assigned_user || null,
+            reporter: dataToSave.reporter || null,
+            end_date: dataToSave.end_date || null,
+            priority: dataToSave.priority || 'Medium',
+            labels: dataToSave.labels || [],
+            image_path: dataToSave.image_path || null
+          })
         });
       } else {
         res = await fetch(`${(process.env.NEXT_PUBLIC_API_URL || '')}/tasks/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ story_id: taskModal.storyId, type: taskModal.type, name: taskModal.name, description: taskModal.description, estimate_hours: parseFloat(taskModal.estimateHours) || 0 })
+          body: JSON.stringify({
+            story_id: dataToSave.story_id || dataToSave.storyId || taskModal.storyId,
+            type: dataToSave.type,
+            name: dataToSave.name,
+            description: dataToSave.description,
+            estimate_hours: parseFloat(dataToSave.estimateHours) || 0,
+            assigned_user: dataToSave.assigned_user || null,
+            reporter: dataToSave.reporter || null,
+            end_date: dataToSave.end_date || null,
+            priority: dataToSave.priority || 'Medium',
+            status: dataToSave.status === 'Todo' ? 'To Do' : (dataToSave.status || 'To Do'),
+            labels: dataToSave.labels || [],
+            image_path: dataToSave.image_path || null
+          })
         });
       }
       
       if (res.ok) {
         toast.success(taskModal.isEdit ? "Task updated" : "Task created");
-        setTaskModal({ open: false, isEdit: false, id: null, storyId: null, type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0 });
+        setTaskModal({
+          open: false,
+          isEdit: false,
+          id: null,
+          storyId: null,
+          type: 'Task',
+          status: 'Todo',
+          name: '',
+          description: '',
+          estimateHours: 0,
+          assigned_user: '',
+          reporter: '',
+          end_date: '',
+          priority: 'Medium',
+          labels: []
+        });
         fetchBoardData();
       }
     } catch (err) {
@@ -182,7 +239,7 @@ const Board = () => {
                         <Box>
                           <IconButton size="small" onClick={() => setStoryModal({ open: true, isEdit: true, id: story._id, name: story.name, description: story.description || '' })}><EditIcon fontSize="small"/></IconButton>
                           <IconButton size="small" color="error" onClick={() => handleDeleteStory(story._id)}><DeleteIcon fontSize="small"/></IconButton>
-                          <Button size="small" variant="outlined" sx={{ ml: 2 }} onClick={() => setTaskModal({ open: true, isEdit: false, id: null, storyId: story._id, type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0 })}>
+                          <Button size="small" variant="outlined" sx={{ ml: 2 }} onClick={() => setTaskModal({ open: true, isEdit: false, id: null, storyId: story._id, type: 'Task', status: 'Todo', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium', labels: [] })}>
                             + Add Task/Bug
                           </Button>
                         </Box>
@@ -211,7 +268,7 @@ const Board = () => {
                               {task.description && <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{task.description}</Typography>}
                             </Box>
                             <Box>
-                              <IconButton size="small" onClick={() => setTaskModal({ open: true, isEdit: true, id: task._id, storyId: story._id, type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0 })}><EditIcon fontSize="small"/></IconButton>
+                              <IconButton size="small" onClick={() => setTaskModal({ open: true, isEdit: true, id: task._id, storyId: story._id, type: task.type, status: task.status === 'To Do' || task.status === 'Todo' ? 'Todo' : task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium', labels: task.labels || [] })}><EditIcon fontSize="small"/></IconButton>
                               <IconButton size="small" color="error" onClick={() => handleDeleteTask(task._id)}><DeleteIcon fontSize="small"/></IconButton>
                             </Box>
                           </Paper>
@@ -243,38 +300,23 @@ const Board = () => {
       </Dialog>
 
       {/* Task/Bug Modal */}
-      <Dialog open={taskModal.open} onClose={() => setTaskModal({...taskModal, open: false})}>
-        <DialogTitle>{taskModal.isEdit ? `Edit ${taskModal.type}` : 'Create Task / Bug'}</DialogTitle>
-        <DialogContent sx={{ minWidth: 400 }}>
-          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Type</InputLabel>
-              <Select value={taskModal.type} label="Type" onChange={e => setTaskModal({...taskModal, type: e.target.value})}>
-                <MenuItem value="Task">Task</MenuItem>
-                <MenuItem value="Bug">Bug</MenuItem>
-              </Select>
-            </FormControl>
-            
-            {taskModal.isEdit && (
-              <FormControl fullWidth margin="dense">
-                <InputLabel>Status</InputLabel>
-                <Select value={taskModal.status} label="Status" onChange={e => setTaskModal({...taskModal, status: e.target.value})}>
-                  <MenuItem value="To Do">To Do (Pending)</MenuItem>
-                  <MenuItem value="In Progress">In Progress</MenuItem>
-                  <MenuItem value="Done">Done (Completed)</MenuItem>
-                </Select>
-              </FormControl>
-            )}
-          </Box>
-          <TextField margin="dense" label="Name" fullWidth value={taskModal.name} onChange={e => setTaskModal({...taskModal, name: e.target.value})} />
-          <TextField margin="dense" label="Estimated Hours" type="number" fullWidth value={taskModal.estimateHours} onChange={e => setTaskModal({...taskModal, estimateHours: e.target.value})} />
-          <TextField margin="dense" label="Description" fullWidth multiline rows={3} value={taskModal.description} onChange={e => setTaskModal({...taskModal, description: e.target.value})} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setTaskModal({...taskModal, open: false})}>Cancel</Button>
-          <Button onClick={handleSaveTask} variant="contained">Save</Button>
-        </DialogActions>
-      </Dialog>
+      <TaskModal
+        open={taskModal.open}
+        onClose={() => setTaskModal(prev => ({ ...prev, open: false }))}
+        taskModalIsEdit={taskModal.isEdit}
+        activeStoryId={taskModal.storyId}
+        setActiveStoryId={(sId) => setTaskModal(prev => ({ ...prev, storyId: sId }))}
+        activeProjectId={projectId}
+        setActiveProjectId={() => {}}
+        storiesByProject={{ [projectId]: stories }}
+        taskForm={taskModal}
+        setTaskForm={setTaskModal}
+        users={[]} // Defaults to standard mock list inside TaskModal
+        onSave={handleSaveTask}
+        projects={project ? [project] : []}
+        showProjectSelect={false}
+        activeTaskId={taskModal.id}
+      />
     </>
   );
 };

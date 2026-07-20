@@ -40,7 +40,7 @@ export const useProjectData = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [taskModalIsEdit, setTaskModalIsEdit] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState(null);
-  const [taskForm, setTaskForm] = useState({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' });
+  const [taskForm, setTaskForm] = useState({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium', image_path: '' });
 
   const fetchAllData = async () => {
     try {
@@ -195,25 +195,27 @@ export const useProjectData = () => {
   };
 
   // --- TASK HANDLERS ---
-  const handleSaveTask = async () => {
+  const handleSaveTask = async (submittedData) => {
     try {
+      const dataToSave = submittedData || taskForm;
       const url = taskModalIsEdit ? `${(process.env.NEXT_PUBLIC_API_URL || '')}/tasks/${activeTaskId}` : `${(process.env.NEXT_PUBLIC_API_URL || '')}/tasks/`;
       const method = taskModalIsEdit ? 'PUT' : 'POST';
       const baseBody = {
-        name: taskForm.name,
-        description: taskForm.description,
-        type: taskForm.type,
-        estimate_hours: parseFloat(taskForm.estimateHours) || 0,
-        assigned_user: taskForm.assigned_user || null,
-        reporter: taskForm.reporter || null,
-        end_date: taskForm.end_date || null,
-        priority: taskForm.priority || 'Medium',
-        status: taskForm.status || 'To Do'
+        name: dataToSave.name,
+        description: dataToSave.description,
+        type: dataToSave.type,
+        estimate_hours: parseFloat(dataToSave.estimateHours) || 0,
+        assigned_user: dataToSave.assigned_user || null,
+        reporter: dataToSave.reporter || null,
+        end_date: dataToSave.end_date || null,
+        priority: dataToSave.priority || 'Medium',
+        status: dataToSave.status || 'To Do',
+        image_path: dataToSave.image_path || null
       };
 
       const body = taskModalIsEdit
         ? { ...baseBody }
-        : { ...baseBody, story_id: activeStoryId };
+        : { ...baseBody, story_id: dataToSave.story_id || activeStoryId };
 
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (res.ok) {

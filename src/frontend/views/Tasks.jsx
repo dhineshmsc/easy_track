@@ -23,7 +23,7 @@ const Tasks = () => {
   const {
     username, projects, storiesByProject, tasksByStory, users,
     taskModalOpen, setTaskModalOpen, taskModalIsEdit, setTaskModalIsEdit,
-    setActiveTaskId, activeStoryId, setActiveStoryId,
+    activeTaskId, setActiveTaskId, activeStoryId, setActiveStoryId,
     activeProjectId, setActiveProjectId, taskForm, setTaskForm,
     handleSaveTask, handleDeleteTask, handlePartialUpdateTask
   } = useProjectData();
@@ -175,7 +175,8 @@ const Tasks = () => {
       assigned_user: task.assigned_user || '',
       reporter: task.reporter || '',
       end_date: task.end_date ? task.end_date.substring(0, 10) : '',
-      priority: task.priority || 'Medium'
+      priority: task.priority || 'Medium',
+      image_path: task.image_path || ''
     });
     setActiveTaskId(task._id);
     const parentProjId = storyLookup[task.story_id]?.project?._id;
@@ -334,7 +335,8 @@ const Tasks = () => {
                     assigned_user: '',
                     reporter: '',
                     end_date: '',
-                    priority: 'Medium'
+                    priority: 'Medium',
+                    image_path: ''
                   });
                   setActiveTaskId(null);
                   setTaskModalIsEdit(false);
@@ -438,6 +440,7 @@ const Tasks = () => {
         onSave={handleSaveTask}
         projects={projects}
         showProjectSelect={true}
+        activeTaskId={activeTaskId}
       />
     </>
   );
