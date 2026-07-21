@@ -2,6 +2,29 @@ import { NextResponse } from 'next/server';
 import { getTasksCol } from '../../../../backend/db';
 import { ObjectId } from 'mongodb';
 
+export async function GET(req, { params }) {
+  try {
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
+    const tasksCol = await getTasksCol();
+    const doc = await tasksCol.findOne({ _id: new ObjectId(id) });
+    if (!doc) {
+      return NextResponse.json({ detail: "Task not found" }, { status: 404 });
+    }
+    doc._id = String(doc._id);
+    if (doc.created_at && doc.created_at instanceof Date) {
+      doc.created_at = doc.created_at.toISOString();
+    }
+    if (doc.end_date && doc.end_date instanceof Date) {
+      doc.end_date = doc.end_date.toISOString();
+    }
+    return NextResponse.json(doc);
+  } catch (error) {
+    console.error('Tasks GET ID error:', error);
+    return NextResponse.json({ detail: error.message || "Internal Server Error" }, { status: 500 });
+  }
+}
+
 export async function PUT(req, { params }) {
   try {
     const resolvedParams = await params;
@@ -9,7 +32,7 @@ export async function PUT(req, { params }) {
     const body = await req.json();
 
     const updateData = {};
-    const allowedFields = ['name', 'description', 'type', 'status', 'estimate_hours', 'assigned_user', 'reporter', 'end_date', 'priority', 'image_path'];
+    const allowedFields = ['name', 'description', 'type', 'status', 'estimate_hours', 'assigned_user', 'reporter', 'end_date', 'priority', 'image_path', 'comments'];
     for (const field of allowedFields) {
       if (body[field] !== undefined && body[field] !== null) {
         if (field === 'end_date' && body[field]) {
@@ -25,7 +48,7 @@ export async function PUT(req, { params }) {
     }
 
     const tasksCol = await getTasksCol();
-    const result = await tasksCol.updateOne(
+    await tasksCol.updateOne(
       { _id: new ObjectId(id) },
       { $set: updateData }
     );

@@ -215,7 +215,7 @@ export const useProjectData = () => {
 
       const body = taskModalIsEdit
         ? { ...baseBody }
-        : { ...baseBody, story_id: dataToSave.story_id || activeStoryId };
+        : { ...baseBody, story_id: dataToSave.story_id || activeStoryId, comments: dataToSave.comments || [] };
 
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (res.ok) {

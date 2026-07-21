@@ -363,7 +363,15 @@ function Toolbar({ editor, company, onImageUpload }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN RICH TEXT EDITOR COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
-const RichTextEditor = ({ value, onChange, placeholder = 'Write task description here... Type @ mention someone', company, onImageUpload }) => {
+const RichTextEditor = ({ 
+  value, 
+  onChange, 
+  placeholder = 'Write task description here... Type @ mention someone', 
+  company, 
+  onImageUpload,
+  minHeight = '190px',
+  maxHeight = '290px'
+}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [lightboxImage, setLightboxImage] = useState(null);
@@ -416,8 +424,8 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write task description
     <>
       <style>{`
         .tiptap-root-editor {
-          min-height: 190px;
-          max-height: 290px;
+          min-height: ${minHeight};
+          max-height: ${maxHeight};
           overflow-y: auto;
           padding: 14px 16px;
           outline: none;

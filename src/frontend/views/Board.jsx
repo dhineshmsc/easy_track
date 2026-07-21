@@ -152,7 +152,8 @@ const Board = () => {
             priority: dataToSave.priority || 'Medium',
             status: dataToSave.status === 'Todo' ? 'To Do' : (dataToSave.status || 'To Do'),
             labels: dataToSave.labels || [],
-            image_path: dataToSave.image_path || null
+            image_path: dataToSave.image_path || null,
+            comments: dataToSave.comments || []
           })
         });
       }

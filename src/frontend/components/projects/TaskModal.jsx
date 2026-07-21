@@ -1,12 +1,12 @@
 "use client";
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useParams } from 'next/navigation';
 import {
   Dialog, DialogContent, Box, TextField, FormControl,
   InputLabel, Select, MenuItem, Button, Typography, Autocomplete,
-  Chip, Fade, IconButton, Divider, Paper
+  Chip, Fade, IconButton, Divider, Paper, useTheme
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
@@ -63,12 +63,31 @@ const TaskModal = ({
     }
   });
 
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [comments, setComments] = useState([]);
+  const descriptionBackupRef = useRef('');
+
+  const handleStartEditDescription = (val) => {
+    descriptionBackupRef.current = val || '';
+    setIsEditingDescription(true);
+  };
+
+  const handleCancelEditDescription = () => {
+    setValue('description', descriptionBackupRef.current);
+    setIsEditingDescription(false);
+  };
+
   const selectedProjectId = watch('project_id');
   const stories = selectedProjectId ? (storiesByProject[selectedProjectId] || []) : [];
 
   // Reset form values when modal opens or parent form changes
   useEffect(() => {
     if (open) {
+      setIsEditingDescription(false);
+      setComments([]);
       reset({
         type: taskForm.type || 'Task',
         status: taskForm.status || 'To Do',
@@ -125,7 +144,8 @@ const TaskModal = ({
       priority: data.priority,
       labels: data.labels,
       image_path: data.image_path,
-      story_id: data.story_id
+      story_id: data.story_id,
+      comments: comments
     };
 
     setTaskForm(mappedForm);
@@ -166,7 +186,8 @@ const TaskModal = ({
         }
       }}
     >
-      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'contents' }}>
+      {open && (
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'contents' }}>
       {/* HEADER */}
       <Box sx={{
         display: 'flex',
@@ -267,27 +288,85 @@ const TaskModal = ({
 
 
 
-              {/* TASK DESCRIPTION RICH TEXT EDITOR */}
+              {/* TASK DESCRIPTION COLLAPSIBLE EDITOR */}
               <Box>
                 <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: '600', mb: 1 }}>
                   Description
                 </Typography>
-                <Controller
-                  name="description"
-                  control={control}
-                  render={({ field }) => (
-                    <RichTextEditor
-                      value={field.value}
-                      onChange={field.onChange}
-                      placeholder="Write task content here... Mention teammates using @name"
-                      company={company}
-                      onImageUpload={(path) => {
-                        const cur = getValues('image_path');
-                        setValue('image_path', cur ? cur + ',' + path : path);
-                      }}
+                {!isEditingDescription ? (
+                  <Box 
+                    onClick={() => handleStartEditDescription(getValues('description'))}
+                    sx={{
+                      p: 2,
+                      minHeight: '60px',
+                      borderRadius: '8px',
+                      border: '1px solid transparent',
+                      cursor: 'pointer',
+                      bgcolor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+                      '&:hover': {
+                        bgcolor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'
+                      },
+                      transition: 'background-color 0.2s, border-color 0.2s',
+                      '& .description-preview img': {
+                        maxWidth: '100%',
+                        maxHeight: '300px',
+                        objectFit: 'contain',
+                        borderRadius: '8px',
+                        margin: '8px 0',
+                        display: 'block'
+                      }
+                    }}
+                  >
+                    {getValues('description') ? (
+                      <div 
+                        className="description-preview"
+                        dangerouslySetInnerHTML={{ __html: getValues('description') }}
+                        style={{ fontSize: '0.9rem', lineHeight: 1.6 }}
+                      />
+                    ) : (
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                        Click to add a description...
+                      </Typography>
+                    )}
+                  </Box>
+                ) : (
+                  <Box>
+                    <Controller
+                      name="description"
+                      control={control}
+                      render={({ field }) => (
+                        <RichTextEditor
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Write task content here... Mention teammates using @name"
+                          company={company}
+                          onImageUpload={(path) => {
+                            const cur = getValues('image_path');
+                            setValue('image_path', cur ? cur + ',' + path : path);
+                          }}
+                        />
+                      )}
                     />
-                  )}
-                />
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
+                      <Button 
+                        size="small" 
+                        variant="contained" 
+                        color="primary"
+                        onClick={() => setIsEditingDescription(false)}
+                      >
+                        Save
+                      </Button>
+                      <Button 
+                        size="small" 
+                        variant="outlined" 
+                        onClick={handleCancelEditDescription}
+                      >
+                        Cancel
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
               </Box>
 
               {/* WHATSAPP DISCUSSION CHAT */}
@@ -295,7 +374,7 @@ const TaskModal = ({
                 <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: '600', mb: 1 }}>
                   Activity
                 </Typography>
-                <ChatBox activeTaskId={activeTaskId} />
+                <ChatBox activeTaskId={activeTaskId} comments={comments} setComments={setComments} />
               </Box>
             </Box>
 
@@ -507,7 +586,8 @@ const TaskModal = ({
             </Box>
           </Box>
       </DialogContent>
-      </form>
+        </form>
+      )}
     </Dialog>
   );
 };
