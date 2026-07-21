@@ -282,7 +282,7 @@ const Tasks = () => {
                   width: 200,
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '8px',
-                    bgcolor: '#f8fafc'
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc'
                   }
                 }}
               />
@@ -297,7 +297,7 @@ const Tasks = () => {
                     setFilterProject(e.target.value);
                     setFilterStory('all'); // Reset story filter when project changes
                   }}
-                  sx={{ borderRadius: '8px', bgcolor: '#f8fafc' }}
+                  sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
                 >
                   <MenuItem value="all">All Projects</MenuItem>
                   {projects.map(p => (
@@ -313,7 +313,7 @@ const Tasks = () => {
                   value={filterStory}
                   label="Story"
                   onChange={e => setFilterStory(e.target.value)}
-                  sx={{ borderRadius: '8px', bgcolor: '#f8fafc' }}
+                  sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
                 >
                   <MenuItem value="all">All Stories</MenuItem>
                   {filterProject !== 'all' && (storiesByProject[filterProject] || []).map(s => (

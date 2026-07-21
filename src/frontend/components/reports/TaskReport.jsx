@@ -247,7 +247,7 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
               </FormControl>
             </Grid>
             <Grid xs={12} sm={6} md={4} lg={1.5}>
-              <TextField type="date" label="Due Before" InputLabelProps={{ shrink: true }} size="small" fullWidth value={endDate} onChange={e => setEndDate(e.target.value)} />
+              <TextField type="date" label="Due Before" slotProps={{ inputLabel: { shrink: true } }} size="small" fullWidth value={endDate} onChange={e => setEndDate(e.target.value)} />
             </Grid>
             <Grid xs={12} sm={6} md={4} lg={1.5}>
               <TextField

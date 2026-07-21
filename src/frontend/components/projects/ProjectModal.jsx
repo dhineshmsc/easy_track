@@ -56,7 +56,7 @@ const ProjectModal = ({ open, onClose, editModal, projectForm, setProjectForm, o
               }
             }}
             fullWidth
-            InputLabelProps={{ shrink: true }}
+            slotProps={{ inputLabel: { shrink: true } }}
             value={projectForm.end_date || ''}
             onChange={e => setProjectForm({ ...projectForm, end_date: e.target.value })}
           />

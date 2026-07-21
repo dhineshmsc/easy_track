@@ -153,15 +153,15 @@ const TaskModal = ({
       maxWidth="lg"
       fullWidth
       scroll="body"
-      TransitionComponent={Fade}
+      slots={{ transition: Fade }}
       transitionDuration={350}
       PaperProps={{
         sx: {
-          bgcolor: '#141418',
+          bgcolor: 'background.paper',
           backgroundImage: 'none',
           borderRadius: '16px',
-          border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 24px 48px rgba(0,0,0,0.6)',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 24px 48px rgba(0,0,0,0.6)' : '0 24px 48px rgba(0,0,0,0.08)',
           overflow: 'hidden'
         }
       }}
@@ -174,8 +174,8 @@ const TaskModal = ({
         justifyContent: 'space-between',
         px: 3,
         py: 2,
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        bgcolor: '#1c1c1e'
+        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+        bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1c1c1e' : '#f5f5f7'
       }}>
         <Typography variant="h6" sx={{ fontWeight: '700', color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
           {taskModalIsEdit ? 'Edit Task' : 'Create Task / Bug'}
@@ -203,7 +203,7 @@ const TaskModal = ({
         </Box>
       </Box>
 
-      <DialogContent sx={{ p: 3, bgcolor: '#0c0c0e' }}>
+      <DialogContent sx={{ p: 3, bgcolor: 'background.default' }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column-reverse', md: 'row' }, gap: 3 }}>
             {/* LEFT PANEL (70%) */}
             <Box sx={{ width: { xs: '100%', md: '70%' }, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
@@ -231,28 +231,29 @@ const TaskModal = ({
                       '& .MuiOutlinedInput-root': {
                         fontSize: '1.25rem',
                         fontWeight: '700',
-                        color: '#ffffff',
-                        bgcolor: '#1a1a20',
+                        color: 'text.primary',
+                        bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1a1a20' : '#ffffff',
                         borderRadius: '10px',
                         transition: 'border-color 0.2s, box-shadow 0.2s, background-color 0.2s',
                         '& fieldset': {
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          border: '1px solid',
+                          borderColor: 'divider',
                           borderRadius: '10px',
                         },
                         '&:hover fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                          borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#0a84ff',
+                          borderColor: 'primary.main',
                         },
                         '&.Mui-focused': {
-                          bgcolor: '#141418',
-                          boxShadow: '0 0 0 2px rgba(10, 132, 255, 0.22)',
+                          bgcolor: 'background.paper',
+                          boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 0 0 2px rgba(10, 132, 255, 0.22)' : '0 0 0 2px rgba(0, 102, 204, 0.15)',
                         },
                       },
                       '& .MuiInputBase-input::placeholder': {
-                        color: 'rgba(255,255,255,0.3)',
-                        opacity: 1,
+                        color: 'text.secondary',
+                        opacity: 0.7,
                       },
                       '& .MuiFormHelperText-root': {
                         color: 'error.main',
@@ -305,8 +306,8 @@ const TaskModal = ({
                 sx={{
                   position: 'sticky',
                   top: '0px',
-                  bgcolor: '#1c1c1e',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1c1c1e' : 'background.paper',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   borderRadius: '12px',
                   p: 2.5,
                   display: 'flex',
@@ -321,7 +322,7 @@ const TaskModal = ({
                   Task Properties
                 </Typography>
 
-                <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+                <Divider />
 
                 {/* PROJECT SELECTION */}
                 {showProjectSelect && (
@@ -400,10 +401,10 @@ const TaskModal = ({
                       <Select
                         labelId="status-select-label"
                         label="Task Status"
-                        value={field.value}
+                        value={field.value === 'Todo' ? 'To Do' : (field.value || 'To Do')}
                         onChange={(e) => field.onChange(e.target.value)}
                       >
-                        <MenuItem value="Todo">Todo</MenuItem>
+                        <MenuItem value="To Do">Todo</MenuItem>
                         <MenuItem value="In Progress">In Progress</MenuItem>
                         <MenuItem value="Testing">Testing</MenuItem>
                         <MenuItem value="Done">Done</MenuItem>
@@ -497,7 +498,7 @@ const TaskModal = ({
                       label="Due Date"
                       type="date"
                       fullWidth
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={{ inputLabel: { shrink: true } }}
                       variant="outlined"
                     />
                   )}

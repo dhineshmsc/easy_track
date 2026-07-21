@@ -187,15 +187,10 @@ const TaskCard = ({
         </Box>
       ) : (
         <Box
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsEditing(true);
-            setEditValue(task.name);
-          }}
           sx={{
             display: 'flex',
+            width: 'fit-content',
             alignItems: 'center',
-            cursor: 'pointer',
             overflow: 'hidden',
             mb: 1,
             '&:hover .task-title-edit-icon': { opacity: 1 }
@@ -211,7 +206,24 @@ const TaskCard = ({
           }}>
             {task.name}
           </Typography>
-          <EditIcon className="task-title-edit-icon" sx={{ fontSize: 14, color: '#6366f1', opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }} />
+          <IconButton
+            className="task-title-edit-icon"
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+              setEditValue(task.name);
+            }}
+            sx={{
+              p: '2px',
+              color: '#6366f1',
+              opacity: 0,
+              transition: 'opacity 0.2s',
+              flexShrink: 0
+            }}
+          >
+            <EditIcon sx={{ fontSize: 14 }} />
+          </IconButton>
         </Box>
       )}
 

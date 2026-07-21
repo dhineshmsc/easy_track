@@ -69,7 +69,7 @@ const StoryModal = ({
               }
             }}
             fullWidth
-            InputLabelProps={{ shrink: true }}
+            slotProps={{ inputLabel: { shrink: true } }}
             value={storyForm.end_date || ''}
             onChange={e => setStoryForm({ ...storyForm, end_date: e.target.value })}
           />

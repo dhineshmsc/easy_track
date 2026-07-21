@@ -237,10 +237,10 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
               </FormControl>
             </Grid>
             <Grid xs={12} sm={6} md={3} lg={2}>
-              <TextField type="date" label="Start Date" InputLabelProps={{ shrink: true }} size="small" fullWidth value={startDate} onChange={e => setStartDate(e.target.value)} />
+              <TextField type="date" label="Start Date" slotProps={{ inputLabel: { shrink: true } }} size="small" fullWidth value={startDate} onChange={e => setStartDate(e.target.value)} />
             </Grid>
             <Grid xs={12} sm={6} md={3} lg={2}>
-              <TextField type="date" label="Due Date" InputLabelProps={{ shrink: true }} size="small" fullWidth value={endDate} onChange={e => setEndDate(e.target.value)} />
+              <TextField type="date" label="Due Date" slotProps={{ inputLabel: { shrink: true } }} size="small" fullWidth value={endDate} onChange={e => setEndDate(e.target.value)} />
             </Grid>
             <Grid xs={12} sm={6} md={3} lg={2}>
               <TextField

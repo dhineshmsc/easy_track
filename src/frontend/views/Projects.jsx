@@ -295,23 +295,35 @@ const Projects = () => {
                           </Box>
                         ) : (
                           <Box
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingProjectId(proj._id);
-                              setEditingProjectValue(proj.name);
-                            }}
                             sx={{
                               display: 'flex',
+                              width: 'fit-content',
                               alignItems: 'center',
-                              cursor: 'pointer',
                               overflow: 'hidden',
                               '&:hover .project-title-edit-icon': { opacity: 1 }
                             }}
                           >
-                            <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.15rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5, flexGrow: 1 }}>
+                            <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.15rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5 }}>
                               {proj.name}
                             </Typography>
-                            <EditIcon className="project-title-edit-icon" sx={{ fontSize: 16, color: '#6366f1', opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }} />
+                            <IconButton
+                              className="project-title-edit-icon"
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingProjectId(proj._id);
+                                setEditingProjectValue(proj.name);
+                              }}
+                              sx={{
+                                p: '2px',
+                                color: '#6366f1',
+                                opacity: 0,
+                                transition: 'opacity 0.2s',
+                                flexShrink: 0
+                              }}
+                            >
+                              <EditIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
                           </Box>
                         )}
                       </Box>
@@ -529,23 +541,35 @@ const Projects = () => {
                                   </Box>
                                 ) : (
                                   <Box
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setEditingStoryId(story._id);
-                                      setEditingStoryValue(story.name);
-                                    }}
                                     sx={{
                                       display: 'flex',
+                                      width: 'fit-content',
                                       alignItems: 'center',
-                                      cursor: 'pointer',
                                       overflow: 'hidden',
                                       '&:hover .story-title-edit-icon': { opacity: 1 }
                                     }}
                                   >
-                                    <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.15rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5, flexGrow: 1 }}>
+                                    <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.15rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5 }}>
                                       {story.name}
                                     </Typography>
-                                    <EditIcon className="story-title-edit-icon" sx={{ fontSize: 16, color: '#6366f1', opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }} />
+                                    <IconButton
+                                      className="story-title-edit-icon"
+                                      size="small"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingStoryId(story._id);
+                                        setEditingStoryValue(story.name);
+                                      }}
+                                      sx={{
+                                        p: '2px',
+                                        color: '#6366f1',
+                                        opacity: 0,
+                                        transition: 'opacity 0.2s',
+                                        flexShrink: 0
+                                      }}
+                                    >
+                                      <EditIcon sx={{ fontSize: 16 }} />
+                                    </IconButton>
                                   </Box>
                                 )}
 
@@ -715,15 +739,10 @@ const Projects = () => {
                                           </Box>
                                         ) : (
                                           <Box
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setEditingTaskId(task._id);
-                                              setEditingTaskValue(task.name);
-                                            }}
                                             sx={{
                                               display: 'flex',
+                                              width: 'fit-content',
                                               alignItems: 'center',
-                                              cursor: 'pointer',
                                               overflow: 'hidden',
                                               '&:hover .task-title-edit-icon': { opacity: 1 }
                                             }}
@@ -731,7 +750,24 @@ const Projects = () => {
                                             <Typography sx={{ fontWeight: 600, color: 'text.primary', fontSize: '0.88rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 0.5 }}>
                                               {task.name}
                                             </Typography>
-                                            <EditIcon className="task-title-edit-icon" sx={{ fontSize: 16, color: '#6366f1', opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }} />
+                                            <IconButton
+                                              className="task-title-edit-icon"
+                                              size="small"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setEditingTaskId(task._id);
+                                                setEditingTaskValue(task.name);
+                                              }}
+                                              sx={{
+                                                p: '2px',
+                                                color: '#6366f1',
+                                                opacity: 0,
+                                                transition: 'opacity 0.2s',
+                                                flexShrink: 0
+                                              }}
+                                            >
+                                              <EditIcon sx={{ fontSize: 16 }} />
+                                            </IconButton>
                                           </Box>
                                         )}
                                         {task.assigned_user && (

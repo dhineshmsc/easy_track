@@ -268,7 +268,7 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
               </FormControl>
             </Grid>
             <Grid xs={12} sm={6} md={3} lg={1.7}>
-              <TextField type="date" label="Due Before" InputLabelProps={{ shrink: true }} size="small" fullWidth value={endDate} onChange={e => setEndDate(e.target.value)} />
+              <TextField type="date" label="Due Before" slotProps={{ inputLabel: { shrink: true } }} size="small" fullWidth value={endDate} onChange={e => setEndDate(e.target.value)} />
             </Grid>
             <Grid xs={12} sm={6} md={3} lg={1.8}>
               <TextField

@@ -10,7 +10,7 @@ import Image from '@tiptap/extension-image';
 
 // ── MUI ───────────────────────────────────────────────────────────────────────
 import {
-  Box, IconButton, Tooltip, Menu, MenuItem, Divider, Typography
+  Box, IconButton, Tooltip, Menu, MenuItem, Divider, Typography, useTheme
 } from '@mui/material';
 import {
   FormatBold, FormatItalic, FormatUnderlined, FormatListBulleted,
@@ -34,6 +34,8 @@ export const MOCK_USERS = [
 // TOOLBAR COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 function Toolbar({ editor, company, onImageUpload }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [headingAnchor, setHeadingAnchor] = useState(null);
   const [colorAnchor, setColorAnchor] = useState(null);
   const [imageAnchor, setImageAnchor] = useState(null);
@@ -81,10 +83,10 @@ function Toolbar({ editor, company, onImageUpload }) {
   };
 
   const normalBtn = {
-    color: '#a0a0a5',
+    color: isDark ? '#a0a0a5' : '#55555a',
     '&:hover': {
-      color: '#ffffff',
-      bgcolor: 'rgba(255, 255, 255, 0.08)'
+      color: isDark ? '#ffffff' : '#000000',
+      bgcolor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'
     }
   };
 
@@ -110,8 +112,9 @@ function Toolbar({ editor, company, onImageUpload }) {
       gap: 0.25,
       px: 1,
       py: 0.75,
-      bgcolor: '#141418',
-      borderBottom: '1px solid rgba(255,255,255,0.08)',
+      bgcolor: isDark ? '#141418' : '#f5f5f7',
+      borderBottom: '1px solid',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
     }}>
       {/* Hidden file input for image uploads */}
       <input
@@ -170,8 +173,8 @@ function Toolbar({ editor, company, onImageUpload }) {
               sx={{
                 fontSize: '0.875rem',
                 bgcolor: isActive ? 'rgba(10, 132, 255, 0.15)' : 'transparent',
-                color: isActive ? '#0a84ff' : '#f0f0f5',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' }
+                color: isActive ? '#0a84ff' : (isDark ? '#f0f0f5' : 'text.primary'),
+                '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }
               }}
             >
               {label}
@@ -180,7 +183,7 @@ function Toolbar({ editor, company, onImageUpload }) {
         })}
       </Menu>
 
-      <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: 'rgba(255,255,255,0.08)' }} />
+      <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />
 
       {/* Bold / Italic / Underline / Code */}
       <Tooltip title="Bold (Ctrl+B)">
@@ -220,7 +223,7 @@ function Toolbar({ editor, company, onImageUpload }) {
         </IconButton>
       </Tooltip>
 
-      <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: 'rgba(255,255,255,0.08)' }} />
+      <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />
 
       {/* Color Picker */}
       <Tooltip title="Text Color">
@@ -229,7 +232,7 @@ function Toolbar({ editor, company, onImageUpload }) {
         </IconButton>
       </Tooltip>
       <Menu anchorEl={colorAnchor} open={Boolean(colorAnchor)} onClose={() => setColorAnchor(null)}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, p: 1.5, bgcolor: '#1c1c1e' }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, p: 1.5, bgcolor: isDark ? '#1c1c1e' : 'background.paper' }}>
           {colorPalette.map((c) => (
             <Tooltip key={c.value} title={c.label}>
               <Box
@@ -243,8 +246,12 @@ function Toolbar({ editor, company, onImageUpload }) {
                   borderRadius: '50%',
                   bgcolor: c.value,
                   cursor: 'pointer',
-                  border: editor.isActive('textStyle', { color: c.value }) ? '2px solid #fff' : '1px solid rgba(255,255,255,0.2)',
-                  boxShadow: editor.isActive('textStyle', { color: c.value }) ? '0 0 4px rgba(255,255,255,0.6)' : 'none',
+                  border: editor.isActive('textStyle', { color: c.value }) 
+                    ? (isDark ? '2px solid #fff' : '2px solid #000') 
+                    : (isDark ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(0,0,0,0.15)'),
+                  boxShadow: editor.isActive('textStyle', { color: c.value }) 
+                    ? (isDark ? '0 0 4px rgba(255,255,255,0.6)' : '0 0 4px rgba(0,0,0,0.15)') 
+                    : 'none',
                   '&:hover': {
                     transform: 'scale(1.15)',
                   },
@@ -263,9 +270,9 @@ function Toolbar({ editor, company, onImageUpload }) {
               sx={{
                 width: 24,
                 height: 24,
-                bgcolor: 'rgba(255,255,255,0.1)',
-                color: '#fff',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
+                bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                color: isDark ? '#fff' : 'text.primary',
+                '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)' }
               }}
             >
               <Typography variant="caption" sx={{ fontSize: '0.65rem', fontWeight: 'bold' }}>✕</Typography>
@@ -289,7 +296,7 @@ function Toolbar({ editor, company, onImageUpload }) {
         </MenuItem>
       </Menu>
 
-      <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: 'rgba(255,255,255,0.08)' }} />
+      <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />
 
       {/* Lists */}
       <Tooltip title="Bullet List">
@@ -322,7 +329,7 @@ function Toolbar({ editor, company, onImageUpload }) {
         </IconButton>
       </Tooltip>
 
-      <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: 'rgba(255,255,255,0.08)' }} />
+      <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />
 
       {/* Undo / Redo */}
       <Tooltip title="Undo (Ctrl+Z)">
@@ -357,6 +364,8 @@ function Toolbar({ editor, company, onImageUpload }) {
 // MAIN RICH TEXT EDITOR COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 const RichTextEditor = ({ value, onChange, placeholder = 'Write task description here... Type @ mention someone', company, onImageUpload }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [lightboxImage, setLightboxImage] = useState(null);
 
   const editor = useEditor({
@@ -414,23 +423,23 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write task description
           outline: none;
           font-size: 0.95rem;
           line-height: 1.7;
-          color: #f0f0f5;
+          color: ${isDark ? '#f0f0f5' : '#1d1d1f'};
           font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-          caret-color: #0a84ff;
+          caret-color: ${isDark ? '#0a84ff' : '#0066cc'};
         }
         .tiptap-root-editor p { margin: 1px 0; }
-        .tiptap-root-editor h1 { font-size: 1.9rem; font-weight: 800; margin: 12px 0 6px; color: #fff; }
-        .tiptap-root-editor h2 { font-size: 1.5rem; font-weight: 700; margin: 10px 0 4px; color: #f0f0f5; }
-        .tiptap-root-editor h3 { font-size: 1.25rem; font-weight: 600; margin: 8px 0 4px; color: #d0d0d8; }
-        .tiptap-root-editor h4 { font-size: 1rem;  font-weight: 600; margin: 6px 0 4px; color: #b0b0b8; text-transform: uppercase; letter-spacing: 0.06em; }
+        .tiptap-root-editor h1 { font-size: 1.9rem; font-weight: 800; margin: 12px 0 6px; color: ${isDark ? '#fff' : '#000'}; }
+        .tiptap-root-editor h2 { font-size: 1.5rem; font-weight: 700; margin: 10px 0 4px; color: ${isDark ? '#f0f0f5' : '#1d1d1f'}; }
+        .tiptap-root-editor h3 { font-size: 1.25rem; font-weight: 600; margin: 8px 0 4px; color: ${isDark ? '#d0d0d8' : '#33333f'}; }
+        .tiptap-root-editor h4 { font-size: 1rem;  font-weight: 600; margin: 6px 0 4px; color: ${isDark ? '#b0b0b8' : '#55555f'}; text-transform: uppercase; letter-spacing: 0.06em; }
         .tiptap-root-editor strong { font-weight: 700; }
         .tiptap-root-editor em { font-style: italic; }
         .tiptap-root-editor u { text-decoration: underline; }
         .tiptap-root-editor code {
           font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
           font-size: 0.85em;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.1);
+          background: ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'};
+          border: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
           border-radius: 4px;
           padding: 1px 5px;
           color: #ff6b81;
@@ -441,7 +450,7 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write task description
           object-fit: cover;
           border-radius: 8px;
           margin: 12px 10px 12px 0;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'};
           display: inline-block;
           vertical-align: middle;
           cursor: pointer;
@@ -449,15 +458,15 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write task description
         }
         .tiptap-root-editor img:hover {
           transform: scale(1.03);
-          border-color: #0a84ff;
+          border-color: ${isDark ? '#0a84ff' : '#0066cc'};
         }
         .tiptap-root-editor blockquote {
-          border-left: 4px solid #0a84ff;
+          border-left: 4px solid ${isDark ? '#0a84ff' : '#0066cc'};
           margin: 10px 0;
           padding: 6px 14px;
           color: #8e8e93;
           font-style: italic;
-          background: rgba(10,132,255,0.06);
+          background: ${isDark ? 'rgba(10,132,255,0.06)' : 'rgba(0,102,204,0.04)'};
           border-radius: 0 6px 6px 0;
         }
         .tiptap-root-editor ul { padding-left: 24px; margin: 4px 0; list-style-type: disc; }
@@ -465,20 +474,20 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write task description
         .tiptap-root-editor li { margin: 2px 0; }
         .tiptap-root-editor pre {
           display: block;
-          background: rgba(0,0,0,0.45);
-          border: 1px solid rgba(255,255,255,0.08);
+          background: ${isDark ? 'rgba(0,0,0,0.45)' : 'rgba(240,240,245,0.7)'};
+          border: 1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'};
           border-radius: 8px;
           padding: 12px 16px;
           font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
           font-size: 0.82rem;
           line-height: 1.6;
           overflow-x: auto;
-          color: #a8ff78;
+          color: ${isDark ? '#a8ff78' : '#007f30'};
           margin: 8px 0;
         }
         /* Placeholder styling */
         .tiptap-root-editor p.is-editor-empty:first-child::before {
-          color: rgba(255,255,255,0.3);
+          color: ${isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'};
           content: attr(data-placeholder);
           float: left;
           height: 0;
@@ -488,14 +497,15 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write task description
       `}</style>
 
       <Box sx={{
-        border: '1px solid rgba(255,255,255,0.10)',
+        border: '1px solid',
+        borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.15)',
         borderRadius: '10px',
-        bgcolor: '#1a1a20',
+        bgcolor: isDark ? '#1a1a20' : '#ffffff',
         overflow: 'hidden',
         transition: 'border-color 0.2s, box-shadow 0.2s',
         '&:focus-within': {
-          borderColor: '#0a84ff',
-          boxShadow: '0 0 0 2px rgba(10,132,255,0.22)',
+          borderColor: isDark ? '#0a84ff' : '#0066cc',
+          boxShadow: isDark ? '0 0 0 2px rgba(10,132,255,0.22)' : '0 0 0 2px rgba(0,102,204,0.15)',
         },
       }}>
         {/* Toolbar */}
