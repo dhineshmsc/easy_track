@@ -8,6 +8,7 @@ import {
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import RichTextEditor from './RichTextEditor';
+import ImageLightbox from '../common/ImageLightbox';
 
 function getMsgDate(msg) {
   if (!msg) return null;
@@ -511,71 +512,7 @@ export default function ChatBox({ activeTaskId, comments = [], setComments = () 
         )}
       </Box>
 
-      {/* Premium Lightbox Modal for Full-Size Image Preview */}
-      {lightboxImage && (
-        <Box
-          onClick={() => setLightboxImage(null)}
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            bgcolor: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(8px)',
-            zIndex: 99999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'zoom-out',
-            animation: 'fadeIn 0.2s ease-out',
-            '@keyframes fadeIn': {
-              from: { opacity: 0 },
-              to: { opacity: 1 }
-            }
-          }}
-        >
-          {/* Close Button */}
-          <IconButton
-            onClick={() => setLightboxImage(null)}
-            sx={{
-              position: 'absolute',
-              top: 24,
-              right: 24,
-              color: '#ffffff',
-              bgcolor: 'rgba(255,255,255,0.08)',
-              '&:hover': {
-                bgcolor: 'rgba(255,255,255,0.2)',
-                transform: 'rotate(90deg)'
-              },
-              transition: 'transform 0.2s, background-color 0.2s',
-            }}
-          >
-            <CloseIcon fontSize="medium" />
-          </IconButton>
-
-          {/* Full-size Image */}
-          <Box
-            component="img"
-            src={lightboxImage}
-            alt="Full size preview"
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              maxHeight: '90vh',
-              maxWidth: '90vw',
-              objectFit: 'contain',
-              borderRadius: '8px',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.85)',
-              cursor: 'default',
-              animation: 'zoomIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              '@keyframes zoomIn': {
-                from: { transform: 'scale(0.92)', opacity: 0 },
-                to: { transform: 'scale(1)', opacity: 1 }
-              }
-            }}
-          />
-        </Box>
-      )}
+      <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
     </Box>
   );
 }

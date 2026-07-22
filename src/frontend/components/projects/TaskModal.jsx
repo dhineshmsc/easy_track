@@ -15,6 +15,7 @@ import { toast } from 'react-hot-toast';
 
 import RichTextEditor, { MOCK_USERS } from '../tasks/RichTextEditor';
 import ChatBox from '../tasks/ChatBox';
+import ImageLightbox from '../common/ImageLightbox';
 import { setAttachments, clearAttachments } from '../../redux/taskSlice';
 
 const TaskModal = ({
@@ -274,7 +275,7 @@ const TaskModal = ({
             <Box sx={{ width: { xs: '100%', md: '70%' }, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               {/* TASK NAME */}
               <Box>
-                <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: '600', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ color: isDark ? '#ffffff' : '#1d1d1f', fontWeight: '700', mb: 1 }}>
                   Task Name
                 </Typography>
                 <Controller
@@ -339,7 +340,7 @@ const TaskModal = ({
 
               {/* TASK DESCRIPTION COLLAPSIBLE EDITOR */}
               <Box>
-                <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: '600', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ color: isDark ? '#ffffff' : '#1d1d1f', fontWeight: '700', mb: 1 }}>
                   Description
                 </Typography>
                 {!isEditingDescription ? (
@@ -459,7 +460,7 @@ const TaskModal = ({
 
               {/* WHATSAPP DISCUSSION CHAT */}
               <Box>
-                <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: '600', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ color: isDark ? '#ffffff' : '#1d1d1f', fontWeight: '700', mb: 1 }}>
                   Activity
                 </Typography>
                 <ChatBox activeTaskId={resolvedTaskId} comments={comments} setComments={setComments} />
@@ -678,68 +679,7 @@ const TaskModal = ({
       </DialogContent>
         </form>
       )}
-      {lightboxImage && (
-        <Box
-          onClick={() => setLightboxImage(null)}
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            bgcolor: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(8px)',
-            zIndex: 99999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'zoom-out',
-            animation: 'fadeIn 0.2s ease-out',
-            '@keyframes fadeIn': {
-              from: { opacity: 0 },
-              to: { opacity: 1 }
-            }
-          }}
-        >
-          <IconButton
-            onClick={() => setLightboxImage(null)}
-            sx={{
-              position: 'absolute',
-              top: 24,
-              right: 24,
-              color: '#ffffff',
-              bgcolor: 'rgba(255,255,255,0.08)',
-              '&:hover': {
-                bgcolor: 'rgba(255,255,255,0.2)',
-                transform: 'rotate(90deg)'
-              },
-              transition: 'transform 0.2s, background-color 0.2s',
-            }}
-          >
-            <CloseIcon fontSize="medium" />
-          </IconButton>
-
-          <Box
-            component="img"
-            src={lightboxImage}
-            alt="Full size preview"
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              maxHeight: '90vh',
-              maxWidth: '90vw',
-              objectFit: 'contain',
-              borderRadius: '8px',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.85)',
-              cursor: 'default',
-              animation: 'zoomIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              '@keyframes zoomIn': {
-                from: { transform: 'scale(0.92)', opacity: 0 },
-                to: { transform: 'scale(1)', opacity: 1 }
-              }
-            }}
-          />
-        </Box>
-      )}
+      <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
     </Dialog>
   );
 };
