@@ -187,6 +187,28 @@ const Tasks = () => {
     setTaskModalOpen(true);
   };
 
+  const handleCreateTaskInColumn = (columnStatus) => {
+    const backendStatus = columnStatus === 'Todo' ? 'To Do' : columnStatus;
+    setTaskForm({
+      type: 'Task',
+      status: backendStatus,
+      name: '',
+      description: '',
+      estimateHours: 0,
+      assigned_user: '',
+      reporter: '',
+      end_date: '',
+      priority: 'Medium',
+      image_path: '',
+      comments: []
+    });
+    setActiveTaskId(null);
+    setTaskModalIsEdit(false);
+    setActiveProjectId(filterProject !== 'all' ? filterProject : (projects[0]?._id || ''));
+    setActiveStoryId(filterStory !== 'all' ? filterStory : '');
+    setTaskModalOpen(true);
+  };
+
   return (
     <>
       <CssBaseline />
@@ -418,6 +440,7 @@ const Tasks = () => {
                   onDeleteTask={handleDeleteTask}
                   onDragStart={handleDragStart}
                   onPartialUpdateTask={handlePartialUpdateTask}
+                  onCreateTaskInColumn={handleCreateTaskInColumn}
                 />
               );
             })}

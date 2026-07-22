@@ -3,6 +3,7 @@ import { Box, Typography, TextField, IconButton, Tooltip, useTheme } from '@mui/
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
 import TaskCard from './TaskCard';
 
 // Color mappings for Light vs Dark modes
@@ -43,7 +44,8 @@ const TaskColumn = ({
   onTaskClick,
   onDeleteTask,
   onDragStart,
-  onPartialUpdateTask
+  onPartialUpdateTask,
+  onCreateTaskInColumn
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -152,6 +154,34 @@ const TaskColumn = ({
             }}>
               {tasks.length}
             </Box>
+
+            {/* '+' Add Task Button right after total count badge */}
+            {onCreateTaskInColumn && (
+              <Tooltip title={`Create Task in ${titleValue}`}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCreateTaskInColumn(status);
+                  }}
+                  sx={{
+                    ml: 'auto',
+                    p: '3px',
+                    color: colHeaderColor,
+                    bgcolor: `${colHeaderColor}15`,
+                    border: `1px solid ${colHeaderColor}40`,
+                    '&:hover': {
+                      bgcolor: `${colHeaderColor}35`,
+                      transform: 'scale(1.1)'
+                    },
+                    transition: 'transform 0.15s, background-color 0.15s',
+                    flexShrink: 0
+                  }}
+                >
+                  <AddIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
         )}
       </Box>

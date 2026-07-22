@@ -257,7 +257,7 @@ const Board = () => {
                                 <Box component="span" sx={{ ml: 2, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: task.type === 'Bug' ? 'rgba(244,67,54,0.1)' : 'rgba(33,150,243,0.1)', color: task.type === 'Bug' ? '#f44336' : '#2196f3' }}>
                                   {task.type}
                                 </Box>
-                                <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: task.status === 'Done' ? 'rgba(76,175,80,0.1)' : task.status === 'In Progress' ? 'rgba(255,152,0,0.1)' : 'rgba(158,158,158,0.1)', color: task.status === 'Done' ? '#4caf50' : task.status === 'In Progress' ? '#ff9800' : '#9e9e9e' }}>
+                                <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: task.status === 'Done' ? 'rgba(76,175,80,0.1)' : task.status === 'In Progress' ? 'rgba(255,152,0,0.1)' : task.status === 'Code Review' ? 'rgba(156,39,176,0.1)' : task.status === 'Deploy' ? 'rgba(0,188,212,0.1)' : 'rgba(158,158,158,0.1)', color: task.status === 'Done' ? '#4caf50' : task.status === 'In Progress' ? '#ff9800' : task.status === 'Code Review' ? '#9c27b0' : task.status === 'Deploy' ? '#00bcd4' : '#9e9e9e' }}>
                                   {task.status}
                                 </Box>
                                 {task.estimate_hours > 0 && (

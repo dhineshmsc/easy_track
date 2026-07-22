@@ -648,10 +648,10 @@ const Projects = () => {
                                     <Paper key={task._id} elevation={0} sx={{
                                       px: '8px', py: '7px', borderRadius: '6px',
                                       border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper',
-                                      borderLeft: `3px solid ${isBug ? '#fca5a5' : '#facc15'}`,
+                                      borderLeft: `3px solid ${sc.color}`,
                                       transition: 'all 0.15s',
                                       cursor: 'pointer',
-                                      '&:hover': { boxShadow: '0 2px 8px rgba(234,179,8,0.1)', borderColor: isBug ? '#fca5a5' : '#facc15' }
+                                      '&:hover': { boxShadow: `0 3px 10px ${sc.color}33`, borderColor: sc.color }
                                     }} onClick={() => {
                                       setTaskForm({ type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium', comments: task.comments || [] });
                                       setActiveTaskId(task._id);

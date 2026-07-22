@@ -128,7 +128,7 @@ const TaskModal = ({
   // Reset form values when modal opens or parent form changes
   useEffect(() => {
     if (open) {
-      setIsEditingDescription(false);
+      setIsEditingDescription(!taskModalIsEdit);
       setComments(taskForm.comments || []);
       reset({
         type: taskForm.type || 'Task',
@@ -273,7 +273,11 @@ const TaskModal = ({
             {/* LEFT PANEL (70%) */}
             <Box sx={{ width: { xs: '100%', md: '70%' }, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               {/* TASK NAME */}
-              <Controller
+              <Box>
+                <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: '600', mb: 1 }}>
+                  Task Name
+                </Typography>
+                <Controller
                 name="name"
                 control={control}
                 rules={{ required: 'Task Name is required' }}
@@ -329,6 +333,7 @@ const TaskModal = ({
                   />
                 )}
               />
+              </Box>
 
 
 
@@ -428,24 +433,26 @@ const TaskModal = ({
                         />
                       )}
                     />
-                    <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
-                      <Button 
-                        type="button"
-                        size="small" 
-                        variant="contained" 
-                        color="primary"
-                        onClick={handleSaveDescriptionToDb}
-                      >
-                        Save
-                      </Button>
-                      <Button 
-                        size="small" 
-                        variant="outlined" 
-                        onClick={handleCancelEditDescription}
-                      >
-                        Cancel
-                      </Button>
-                    </Box>
+                    {taskModalIsEdit && (
+                      <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
+                        <Button 
+                          type="button"
+                          size="small" 
+                          variant="contained" 
+                          color="primary"
+                          onClick={handleSaveDescriptionToDb}
+                        >
+                          Save
+                        </Button>
+                        <Button 
+                          size="small" 
+                          variant="outlined" 
+                          onClick={handleCancelEditDescription}
+                        >
+                          Cancel
+                        </Button>
+                      </Box>
+                    )}
                   </Box>
                 )}
               </Box>
@@ -566,7 +573,9 @@ const TaskModal = ({
                       >
                         <MenuItem value="To Do">Todo</MenuItem>
                         <MenuItem value="In Progress">In Progress</MenuItem>
+                        <MenuItem value="Code Review">Code Review</MenuItem>
                         <MenuItem value="Testing">Testing</MenuItem>
+                        <MenuItem value="Deploy">Deploy</MenuItem>
                         <MenuItem value="Done">Done</MenuItem>
                       </Select>
                     )}

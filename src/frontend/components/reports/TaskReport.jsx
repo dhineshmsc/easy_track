@@ -241,7 +241,9 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                   <MenuItem value="Todo">Todo</MenuItem>
                   <MenuItem value="To Do">To Do</MenuItem>
                   <MenuItem value="In Progress">In Progress</MenuItem>
+                  <MenuItem value="Code Review">Code Review</MenuItem>
                   <MenuItem value="Testing">Testing</MenuItem>
+                  <MenuItem value="Deploy">Deploy</MenuItem>
                   <MenuItem value="Done">Done</MenuItem>
                 </Select>
               </FormControl>

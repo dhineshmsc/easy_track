@@ -231,6 +231,8 @@ const ProjectReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}
                 <Select value={statusFilter} label="Status" onChange={e => setStatusFilter(e.target.value)}>
                   <MenuItem value="all">All Statuses</MenuItem>
                   <MenuItem value="In Progress">In Progress</MenuItem>
+                  <MenuItem value="Code Review">Code Review</MenuItem>
+                  <MenuItem value="Deploy">Deploy</MenuItem>
                   <MenuItem value="Completed">Completed</MenuItem>
                   <MenuItem value="Planning">Planning</MenuItem>
                 </Select>

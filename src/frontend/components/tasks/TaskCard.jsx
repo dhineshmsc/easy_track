@@ -9,6 +9,17 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import { priorityColor, getUserInitials, getAvatarColor } from '../../utils/projectsHelper';
 
+const getStatusColor = (status) => {
+  const s = (status || '').trim().toLowerCase();
+  if (s === 'todo' || s === 'to do') return '#64748b';
+  if (s === 'in progress') return '#0066cc';
+  if (s === 'code review') return '#7c3aed';
+  if (s === 'testing') return '#ea580c';
+  if (s === 'deploy') return '#059669';
+  if (s === 'done') return '#16a34a';
+  return '#64748b';
+};
+
 const TaskCard = ({
   task,
   projName,
@@ -22,6 +33,7 @@ const TaskCard = ({
   const isBug = task.type === 'Bug';
   const assignee = users.find(u => (u._id || u.user_id) === task.assigned_user);
   const pColor = priorityColor(task.priority);
+  const statusColor = getStatusColor(task.status);
 
   // Local state for inline title editing
   const [isEditing, setIsEditing] = useState(false);
@@ -50,14 +62,14 @@ const TaskCard = ({
         border: '1px solid',
         borderColor: 'divider',
         bgcolor: 'background.paper',
-        borderLeft: `4px solid ${isBug ? '#ef4444' : '#eab308'}`,
+        borderLeft: `4px solid ${statusColor}`,
         transition: 'all 0.15s',
         cursor: 'pointer',
         '&:hover': {
           bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2c2c2e' : '#f1f5f9',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-          transform: 'translateY(-1px)',
-          borderColor: isBug ? '#ef4444' : '#eab308'
+          boxShadow: `0 4px 14px ${statusColor}33`,
+          transform: 'translateY(-1.5px)',
+          borderColor: statusColor
         }
       }}
       onClick={() => onTaskClick(task)}
