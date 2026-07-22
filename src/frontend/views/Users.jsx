@@ -388,7 +388,7 @@ const Users = () => {
       </Box>
 
       {/* CREATE / EDIT DIALOG */}
-      <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 1 } }}>
+      <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}>
         <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
           {isEdit ? 'Edit User' : 'Create New User'}
         </DialogTitle>
@@ -443,7 +443,7 @@ const Users = () => {
       </Dialog>
 
       {/* VIEW DIALOG */}
-      <Dialog open={viewModalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
+      <Dialog open={viewModalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: 3, p: 2 } } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Avatar src={selectedUser?.profile_image} sx={{ width: 56, height: 56, bgcolor: getAvatarColor(selectedUser?.name), color: '#fff', fontWeight: 'bold' }}>
             {selectedUser?.name?.charAt(0)}

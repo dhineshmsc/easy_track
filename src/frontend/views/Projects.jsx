@@ -653,7 +653,7 @@ const Projects = () => {
                                       cursor: 'pointer',
                                       '&:hover': { boxShadow: '0 2px 8px rgba(234,179,8,0.1)', borderColor: isBug ? '#fca5a5' : '#facc15' }
                                     }} onClick={() => {
-                                      setTaskForm({ type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium' });
+                                      setTaskForm({ type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium', comments: task.comments || [] });
                                       setActiveTaskId(task._id);
                                       setTaskModalIsEdit(true);
                                       setTaskModalOpen(true);
@@ -866,6 +866,7 @@ const Projects = () => {
         projects={projects}
         showProjectSelect={!activeStoryId && !taskModalIsEdit}
         activeTaskId={activeTaskId}
+        onPartialUpdateTask={handlePartialUpdateTask}
       />
     </>
   );

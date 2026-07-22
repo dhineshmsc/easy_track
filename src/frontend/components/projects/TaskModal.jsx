@@ -11,6 +11,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
 import CreateIcon from '@mui/icons-material/Create';
+import { toast } from 'react-hot-toast';
 
 import RichTextEditor, { MOCK_USERS } from '../tasks/RichTextEditor';
 import ChatBox from '../tasks/ChatBox';
@@ -31,7 +32,8 @@ const TaskModal = ({
   onSave,
   projects = [],
   showProjectSelect = false,
-  activeTaskId = null
+  activeTaskId = null,
+  onPartialUpdateTask = null
 }) => {
   const dispatch = useDispatch();
   const { company } = useParams();
@@ -68,6 +70,7 @@ const TaskModal = ({
 
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [comments, setComments] = useState([]);
+  const [lightboxImage, setLightboxImage] = useState(null);
   const descriptionBackupRef = useRef('');
 
   const handleStartEditDescription = (val) => {
@@ -80,6 +83,45 @@ const TaskModal = ({
     setIsEditingDescription(false);
   };
 
+  const resolvedTaskId = activeTaskId || taskForm?._id || taskForm?.id;
+
+  const handleSaveDescriptionToDb = async (e) => {
+    if (e) e.preventDefault();
+    const currentDescription = getValues('description');
+    setValue('description', currentDescription);
+    if (setTaskForm) {
+      setTaskForm((prev) => ({ ...prev, description: currentDescription }));
+    }
+
+    if (resolvedTaskId) {
+      if (onPartialUpdateTask) {
+        await onPartialUpdateTask(resolvedTaskId, { description: currentDescription });
+      } else {
+        try {
+          const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api';
+          const res = await fetch(`${apiBase}/tasks/${resolvedTaskId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: currentDescription })
+          });
+          if (res.ok) {
+            toast.success('Description saved to database!');
+          } else {
+            toast.error('Failed to update description in database');
+          }
+        } catch (err) {
+          console.error('Error saving description:', err);
+          toast.error('Error saving description');
+        }
+      }
+    } else {
+      toast.success('Description saved to draft!');
+    }
+
+    // Switch back to normal option (preview mode)
+    setIsEditingDescription(false);
+  };
+
   const selectedProjectId = watch('project_id');
   const stories = selectedProjectId ? (storiesByProject[selectedProjectId] || []) : [];
 
@@ -87,7 +129,7 @@ const TaskModal = ({
   useEffect(() => {
     if (open) {
       setIsEditingDescription(false);
-      setComments([]);
+      setComments(taskForm.comments || []);
       reset({
         type: taskForm.type || 'Task',
         status: taskForm.status || 'To Do',
@@ -175,14 +217,16 @@ const TaskModal = ({
       scroll="body"
       slots={{ transition: Fade }}
       transitionDuration={350}
-      PaperProps={{
-        sx: {
-          bgcolor: 'background.paper',
-          backgroundImage: 'none',
-          borderRadius: '16px',
-          border: (theme) => `1px solid ${theme.palette.divider}`,
-          boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 24px 48px rgba(0,0,0,0.6)' : '0 24px 48px rgba(0,0,0,0.08)',
-          overflow: 'hidden'
+      slotProps={{
+        paper: {
+          sx: {
+            bgcolor: 'background.paper',
+            backgroundImage: 'none',
+            borderRadius: '16px',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 24px 48px rgba(0,0,0,0.6)' : '0 24px 48px rgba(0,0,0,0.08)',
+            overflow: 'hidden'
+          }
         }
       }}
     >
@@ -294,41 +338,75 @@ const TaskModal = ({
                   Description
                 </Typography>
                 {!isEditingDescription ? (
-                  <Box 
-                    onClick={() => handleStartEditDescription(getValues('description'))}
-                    sx={{
-                      p: 2,
-                      minHeight: '60px',
-                      borderRadius: '8px',
-                      border: '1px solid transparent',
-                      cursor: 'pointer',
-                      bgcolor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
-                      '&:hover': {
-                        bgcolor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
-                        borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'
-                      },
-                      transition: 'background-color 0.2s, border-color 0.2s',
-                      '& .description-preview img': {
-                        maxWidth: '100%',
-                        maxHeight: '300px',
-                        objectFit: 'contain',
+                  <Box sx={{ position: 'relative', '&:hover .edit-icon-btn': { opacity: 1 } }}>
+                    <Box 
+                      onClick={(e) => {
+                        if (e.target && e.target.tagName === 'IMG') {
+                          e.stopPropagation();
+                          setLightboxImage(e.target.getAttribute('src'));
+                        }
+                      }}
+                      sx={{
+                        p: 2,
+                        pr: 6,
+                        minHeight: '100px',
+                        maxHeight: '380px',
+                        overflowY: 'auto',
                         borderRadius: '8px',
-                        margin: '8px 0',
-                        display: 'block'
-                      }
-                    }}
-                  >
-                    {getValues('description') ? (
-                      <div 
-                        className="description-preview"
-                        dangerouslySetInnerHTML={{ __html: getValues('description') }}
-                        style={{ fontSize: '0.9rem', lineHeight: 1.6 }}
-                      />
-                    ) : (
-                      <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                        Click to add a description...
-                      </Typography>
-                    )}
+                        border: '1px solid transparent',
+                        cursor: 'default',
+                        bgcolor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+                        '&:hover': {
+                          bgcolor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
+                          borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'
+                        },
+                        transition: 'background-color 0.2s, border-color 0.2s',
+                        '& .description-preview img': {
+                          maxWidth: '100%',
+                          maxHeight: '300px',
+                          objectFit: 'contain',
+                          borderRadius: '8px',
+                          margin: '8px 0',
+                          display: 'block',
+                          cursor: 'pointer'
+                        }
+                      }}
+                    >
+                      {getValues('description') ? (
+                        <div 
+                          className="description-preview"
+                          dangerouslySetInnerHTML={{ __html: getValues('description') }}
+                          style={{ fontSize: '0.9rem', lineHeight: 1.6 }}
+                        />
+                      ) : (
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                          No description provided. Click the edit icon in the top right to add one.
+                        </Typography>
+                      )}
+                    </Box>
+                    <IconButton
+                      className="edit-icon-btn"
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStartEditDescription(getValues('description'));
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        opacity: 0.6,
+                        transition: 'opacity 0.2s',
+                        color: 'text.secondary',
+                        bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                        '&:hover': {
+                          bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                          color: 'text.primary',
+                        }
+                      }}
+                    >
+                      <CreateIcon fontSize="small" />
+                    </IconButton>
                   </Box>
                 ) : (
                   <Box>
@@ -345,15 +423,18 @@ const TaskModal = ({
                             const cur = getValues('image_path');
                             setValue('image_path', cur ? cur + ',' + path : path);
                           }}
+                          minHeight="220px"
+                          maxHeight="380px"
                         />
                       )}
                     />
                     <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
                       <Button 
+                        type="button"
                         size="small" 
                         variant="contained" 
                         color="primary"
-                        onClick={() => setIsEditingDescription(false)}
+                        onClick={handleSaveDescriptionToDb}
                       >
                         Save
                       </Button>
@@ -374,7 +455,7 @@ const TaskModal = ({
                 <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: '600', mb: 1 }}>
                   Activity
                 </Typography>
-                <ChatBox activeTaskId={activeTaskId} comments={comments} setComments={setComments} />
+                <ChatBox activeTaskId={resolvedTaskId} comments={comments} setComments={setComments} />
               </Box>
             </Box>
 
@@ -587,6 +668,68 @@ const TaskModal = ({
           </Box>
       </DialogContent>
         </form>
+      )}
+      {lightboxImage && (
+        <Box
+          onClick={() => setLightboxImage(null)}
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            bgcolor: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'zoom-out',
+            animation: 'fadeIn 0.2s ease-out',
+            '@keyframes fadeIn': {
+              from: { opacity: 0 },
+              to: { opacity: 1 }
+            }
+          }}
+        >
+          <IconButton
+            onClick={() => setLightboxImage(null)}
+            sx={{
+              position: 'absolute',
+              top: 24,
+              right: 24,
+              color: '#ffffff',
+              bgcolor: 'rgba(255,255,255,0.08)',
+              '&:hover': {
+                bgcolor: 'rgba(255,255,255,0.2)',
+                transform: 'rotate(90deg)'
+              },
+              transition: 'transform 0.2s, background-color 0.2s',
+            }}
+          >
+            <CloseIcon fontSize="medium" />
+          </IconButton>
+
+          <Box
+            component="img"
+            src={lightboxImage}
+            alt="Full size preview"
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              maxHeight: '90vh',
+              maxWidth: '90vw',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.85)',
+              cursor: 'default',
+              animation: 'zoomIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              '@keyframes zoomIn': {
+                from: { transform: 'scale(0.92)', opacity: 0 },
+                to: { transform: 'scale(1)', opacity: 1 }
+              }
+            }}
+          />
+        </Box>
       )}
     </Dialog>
   );

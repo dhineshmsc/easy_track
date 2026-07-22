@@ -176,7 +176,8 @@ const Tasks = () => {
       reporter: task.reporter || '',
       end_date: task.end_date ? task.end_date.substring(0, 10) : '',
       priority: task.priority || 'Medium',
-      image_path: task.image_path || ''
+      image_path: task.image_path || '',
+      comments: task.comments || []
     });
     setActiveTaskId(task._id);
     const parentProjId = storyLookup[task.story_id]?.project?._id;
@@ -441,6 +442,7 @@ const Tasks = () => {
         projects={projects}
         showProjectSelect={true}
         activeTaskId={activeTaskId}
+        onPartialUpdateTask={handlePartialUpdateTask}
       />
     </>
   );

@@ -210,12 +210,13 @@ export const useProjectData = () => {
         end_date: dataToSave.end_date || null,
         priority: dataToSave.priority || 'Medium',
         status: dataToSave.status || 'To Do',
-        image_path: dataToSave.image_path || null
+        image_path: dataToSave.image_path || null,
+        comments: dataToSave.comments || []
       };
 
       const body = taskModalIsEdit
         ? { ...baseBody }
-        : { ...baseBody, story_id: dataToSave.story_id || activeStoryId, comments: dataToSave.comments || [] };
+        : { ...baseBody, story_id: dataToSave.story_id || activeStoryId };
 
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (res.ok) {

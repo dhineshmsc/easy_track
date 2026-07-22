@@ -337,7 +337,7 @@ const StoryReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, 
       </Card>
 
       {/* Row details Dialog */}
-      <Dialog open={viewDialogOpen} onClose={() => setViewDialogOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 1 } }}>
+      <Dialog open={viewDialogOpen} onClose={() => setViewDialogOpen(false)} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}>
         <DialogTitle sx={{ fontWeight: 'bold' }}>{selectedRow?.name} details</DialogTitle>
         <DialogContent dividers sx={{ borderColor: 'rgba(255,255,255,0.08)' }}>
           {selectedRow && (

@@ -75,9 +75,11 @@ const TopNav = ({ company, username }) => {
             onClose={handleMenuClose}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            PaperProps={{
-              elevation: 4,
-              sx: { mt: 1.5, minWidth: 200, borderRadius: 2 }
+            slotProps={{
+              paper: {
+                elevation: 4,
+                sx: { mt: 1.5, minWidth: 200, borderRadius: 2 }
+              }
             }}
           >
             <MenuItem onClick={handleMenuClose}>Profile Settings</MenuItem>

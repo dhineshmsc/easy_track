@@ -269,7 +269,7 @@ const Board = () => {
                               {task.description && <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{task.description}</Typography>}
                             </Box>
                             <Box>
-                              <IconButton size="small" onClick={() => setTaskModal({ open: true, isEdit: true, id: task._id, storyId: story._id, type: task.type, status: task.status === 'To Do' || task.status === 'Todo' ? 'Todo' : task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium', labels: task.labels || [] })}><EditIcon fontSize="small"/></IconButton>
+                              <IconButton size="small" onClick={() => setTaskModal({ open: true, isEdit: true, id: task._id, storyId: story._id, type: task.type, status: task.status === 'To Do' || task.status === 'Todo' ? 'Todo' : task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium', labels: task.labels || [], comments: task.comments || [] })}><EditIcon fontSize="small"/></IconButton>
                               <IconButton size="small" color="error" onClick={() => handleDeleteTask(task._id)}><DeleteIcon fontSize="small"/></IconButton>
                             </Box>
                           </Paper>
@@ -317,6 +317,17 @@ const Board = () => {
         projects={project ? [project] : []}
         showProjectSelect={false}
         activeTaskId={taskModal.id}
+        onPartialUpdateTask={async (id, fields) => {
+          const res = await fetch(`/api/tasks/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fields)
+          });
+          if (res.ok) {
+            toast.success('Description saved to database!');
+            fetchBoardData();
+          }
+        }}
       />
     </>
   );
