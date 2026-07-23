@@ -243,12 +243,16 @@ const TaskCard = ({
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.5 }}>
         {/* Project / Story Info */}
         <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: '75%' }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.68rem', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {projName}
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {storyName}
-          </Typography>
+          <Tooltip title={`Project: ${projName}`} arrow placement="bottom-start">
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.68rem', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'default' }}>
+              {projName}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={`Story: ${storyName}`} arrow placement="bottom-start">
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'default' }}>
+              {storyName}
+            </Typography>
+          </Tooltip>
         </Box>
 
         {/* Assignee Avatar */}
