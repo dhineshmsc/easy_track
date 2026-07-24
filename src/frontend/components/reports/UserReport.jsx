@@ -70,14 +70,16 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
 
     const assignedProjects = Array.from(projSet).join(', ') || 'None';
 
-    let todo = 0, inProgress = 0, testing = 0, done = 0;
+    let todo = 0, inProgress = 0, codeReview = 0, testing = 0, deploy = 0, done = 0;
     let overdueTasks = 0;
     const todayStr = new Date().toISOString().split('T')[0];
     userTasksList.forEach(t => {
       const statusName = (t.status || '').toLowerCase().trim();
       if (statusName === 'todo' || statusName === 'to do') todo++;
-      else if (statusName === 'in progress') inProgress++;
+      else if (statusName === 'developing' || statusName === 'in progress') inProgress++;
+      else if (statusName === 'code review') codeReview++;
       else if (statusName === 'testing') testing++;
+      else if (statusName === 'deploy') deploy++;
       else if (statusName === 'done') done++;
 
       if (statusName !== 'done' && t.end_date) {
@@ -101,7 +103,9 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
       assignedTasks: userTasksList.length,
       todo,
       inProgress,
+      codeReview,
       testing,
+      deploy,
       done,
       completedTasks: done,
       totalHours,
@@ -129,8 +133,8 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
   const handleExportCSV = () => {
     const headers = [
       'Employee ID', 'User Name', 'Email', 'Role', 'Assigned Projects',
-      'Assigned Stories', 'Assigned Tasks', 'Todo', 'In Progress',
-      'Testing', 'Done', 'Completed Tasks', 'Total Hours', 'Overdue Tasks'
+      'Assigned Stories', 'Assigned Tasks', 'Todo', 'Develop', 'Code Review',
+      'Testing', 'Deploy', 'Done', 'Completed Tasks', 'Total Hours', 'Overdue Tasks'
     ];
     const csvRows = [headers.join(',')];
 
@@ -145,7 +149,9 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
         row.assignedTasks,
         row.todo,
         row.inProgress,
+        row.codeReview,
         row.testing,
+        row.deploy,
         row.done,
         row.completedTasks,
         row.totalHours,
@@ -186,8 +192,10 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     { field: 'assignedStories', headerName: 'Stories', width: 70, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'assignedTasks', headerName: 'Tasks', width: 65, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'todo', headerName: 'Todo', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'inProgress', headerName: 'In Prog.', width: 75, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'inProgress', headerName: 'Develop', width: 75, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'codeReview', headerName: 'Code Review', width: 95, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'testing', headerName: 'Test', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'deploy', headerName: 'Deploy', width: 70, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'done', headerName: 'Done', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'completedTasks', headerName: 'Completed', width: 90, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: '#16a34a', fontSize: '0.78rem' }}>{params.value}</strong> },
     { field: 'totalHours', headerName: 'Hrs', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
@@ -200,7 +208,7 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
       <Card sx={{ border: '1px solid rgba(255,255,255,0.06)', bgcolor: 'background.paper', borderRadius: 3 }}>
         <CardContent sx={{ p: '10px' }}>
           <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 1.5 }}>User Filter Config</Typography>
-          <Grid container spacing={2} alignItems="center">
+          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
             <Grid xs={12} sm={6} md={3} lg={2.4}>
               <FormControl size="small" fullWidth>
                 <InputLabel>User</InputLabel>
@@ -273,8 +281,10 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
             }}
             disableRowSelectionOnClick
             autoHeight
+            onRowClick={(params) => handleOpenView(params.row)}
             sx={{
               border: 'none',
+              cursor: 'pointer',
               fontSize: '0.78rem',
               '& .MuiDataGrid-columnHeaders': {
                 bgcolor: 'rgba(255, 255, 255, 0.02)',
@@ -330,16 +340,28 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                     <Typography variant="h6" fontWeight="bold">{selectedRow.assignedTasks}</Typography>
                   </Grid>
                   <Grid xs={4}>
-                    <Typography variant="caption" color="text.secondary">In Progress Tasks</Typography>
+                    <Typography variant="caption" color="text.secondary">Todo Tasks</Typography>
+                    <Typography variant="h6" fontWeight="bold">{selectedRow.todo}</Typography>
+                  </Grid>
+                  <Grid xs={4}>
+                    <Typography variant="caption" color="text.secondary">Develop Tasks</Typography>
                     <Typography variant="h6" fontWeight="bold" sx={{ color: 'primary.main' }}>{selectedRow.inProgress}</Typography>
                   </Grid>
                   <Grid xs={4}>
-                    <Typography variant="caption" color="text.secondary">Completed Tasks</Typography>
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'success.main' }}>{selectedRow.completedTasks}</Typography>
+                    <Typography variant="caption" color="text.secondary">Code Review Tasks</Typography>
+                    <Typography variant="h6" fontWeight="bold">{selectedRow.codeReview}</Typography>
                   </Grid>
                   <Grid xs={4}>
                     <Typography variant="caption" color="text.secondary">Testing Tasks</Typography>
                     <Typography variant="h6" fontWeight="bold" sx={{ color: 'info.main' }}>{selectedRow.testing}</Typography>
+                  </Grid>
+                  <Grid xs={4}>
+                    <Typography variant="caption" color="text.secondary">Deploy Tasks</Typography>
+                    <Typography variant="h6" fontWeight="bold">{selectedRow.deploy}</Typography>
+                  </Grid>
+                  <Grid xs={4}>
+                    <Typography variant="caption" color="text.secondary">Completed Tasks</Typography>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'success.main' }}>{selectedRow.completedTasks}</Typography>
                   </Grid>
                   <Grid xs={4}>
                     <Typography variant="caption" color="text.secondary">Overdue Tasks</Typography>

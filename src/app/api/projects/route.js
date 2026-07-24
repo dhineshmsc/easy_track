@@ -94,7 +94,7 @@ export async function GET(req) {
           const status = t.status || "To Do";
           if (status === "To Do") {
             pending += 1;
-          } else if (status === "In Progress") {
+          } else if (status === "Developing" || status === "In Progress") {
             progress += 1;
           } else if (status === "Done") {
             completed += 1;

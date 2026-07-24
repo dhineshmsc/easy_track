@@ -22,7 +22,7 @@ export const statusColor = (s) => {
     
     'not started': { bg: '#f8fafc', color: '#64748b', border: '#cbd5e1' },
     'planning':    { bg: '#f0f9ff', color: '#0369a1', border: '#bae6fd' },
-    'developing':  { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
+    'developing':  { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
     'on hold':     { bg: '#fffbeb', color: '#b45309', border: '#fde68a' },
     'closed':      { bg: '#f1f5f9', color: '#334155', border: '#cbd5e1' },
     'cancelled':   { bg: '#fef2f2', color: '#b91c1c', border: '#fca5a5' }

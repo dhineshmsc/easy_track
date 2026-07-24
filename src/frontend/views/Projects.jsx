@@ -149,6 +149,17 @@ const Projects = () => {
     return true;
   });
 
+  const filteredStoriesCount = filteredProjects.reduce((sum, proj) => {
+    return sum + getFilteredStoriesForProject(proj._id).length;
+  }, 0);
+
+  const filteredTasksCount = filteredProjects.reduce((sum, proj) => {
+    const stories = getFilteredStoriesForProject(proj._id);
+    return sum + stories.reduce((sSum, story) => {
+      return sSum + getFilteredTasksForStory(story._id).length;
+    }, 0);
+  }, 0);
+
   return (
     <>
       <CssBaseline />
@@ -319,7 +330,7 @@ const Projects = () => {
             <Box sx={{ px: 2, py: 1.5, borderRight: '1px solid', borderColor: 'divider', borderBottom: '3px solid #6366f1', display: 'flex', alignItems: 'center', gap: 1 }}>
               <FolderOutlinedIcon sx={{ fontSize: 16, color: '#6366f1' }} />
               <Typography variant="overline" sx={{ fontWeight: 900, color: '#6366f1', letterSpacing: 1.5, fontSize: '0.75rem', lineHeight: 1 }}>PROJECT</Typography>
-              <Box sx={{ bgcolor: '#ede9fe', color: '#6366f1', fontSize: '0.68rem', fontWeight: 700, px: 0.8, py: 0.2, borderRadius: 8 }}>{projects.length}</Box>
+              <Box sx={{ bgcolor: '#ede9fe', color: '#6366f1', fontSize: '0.68rem', fontWeight: 700, px: 0.8, py: 0.2, borderRadius: 8 }}>{filteredProjects.length}</Box>
               <IconButton 
                 size="small" 
                 sx={{ 
@@ -347,7 +358,7 @@ const Projects = () => {
             <Box sx={{ px: 2, py: 1.5, borderRight: '1px solid', borderColor: 'divider', borderBottom: '3px solid #10b981', display: 'flex', alignItems: 'center', gap: 1 }}>
               <BookmarkBorderOutlinedIcon sx={{ fontSize: 16, color: '#10b981' }} />
               <Typography variant="overline" sx={{ fontWeight: 900, color: '#10b981', letterSpacing: 1.5, fontSize: '0.75rem', lineHeight: 1 }}>STORY</Typography>
-              <Box sx={{ bgcolor: '#d1fae5', color: '#059669', fontSize: '0.68rem', fontWeight: 700, px: 0.8, py: 0.2, borderRadius: 8 }}>{Object.values(storiesByProject).flat().length}</Box>
+              <Box sx={{ bgcolor: '#d1fae5', color: '#059669', fontSize: '0.68rem', fontWeight: 700, px: 0.8, py: 0.2, borderRadius: 8 }}>{filteredStoriesCount}</Box>
               <IconButton 
                 size="small" 
                 sx={{ 
@@ -371,7 +382,7 @@ const Projects = () => {
                 <Typography variant="overline" sx={{ fontWeight: 900, color: '#cbd5e1', letterSpacing: 1.5, fontSize: '0.75rem', lineHeight: 1 }}>|</Typography>
                 <Typography variant="overline" sx={{ fontWeight: 900, color: '#ef4444', letterSpacing: 1.5, fontSize: '0.75rem', lineHeight: 1, textDecoration: 'underline' }}>BUG</Typography>
               </Box>
-              <Box sx={{ bgcolor: '#fef9c3', color: '#eab308', fontSize: '0.68rem', fontWeight: 700, px: 0.8, py: 0.2, borderRadius: 8 }}>{Object.values(tasksByStory).flat().length}</Box>
+              <Box sx={{ bgcolor: '#fef9c3', color: '#eab308', fontSize: '0.68rem', fontWeight: 700, px: 0.8, py: 0.2, borderRadius: 8 }}>{filteredTasksCount}</Box>
               <IconButton 
                 size="small" 
                 sx={{ 
@@ -381,7 +392,7 @@ const Projects = () => {
                 onClick={() => {
                   setActiveProjectId('');
                   setActiveStoryId('');
-                  setTaskForm({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' });
+                  setTaskForm({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium', work_status: 'Not Started', team_assignment: null });
                   setTaskModalIsEdit(false);
                   setTaskModalOpen(true);
                 }}
@@ -953,7 +964,7 @@ const Projects = () => {
                                       cursor: 'pointer',
                                       '&:hover': { boxShadow: `0 3px 10px ${sc.color}33`, borderColor: sc.color }
                                     }} onClick={() => {
-                                      setTaskForm({ type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium', comments: task.comments || [] });
+                                      setTaskForm({ type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium', comments: task.comments || [], work_status: task.work_status || 'Not Started', team_assignment: task.team_assignment || null });
                                       setActiveTaskId(task._id);
                                       setTaskModalIsEdit(true);
                                       setTaskModalOpen(true);
@@ -1103,7 +1114,7 @@ const Projects = () => {
                                 }} onClick={() => {
                                   setActiveProjectId(proj._id);
                                   setActiveStoryId(story._id);
-                                  setTaskForm({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium' });
+                                  setTaskForm({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium', work_status: 'Not Started', team_assignment: null });
                                   setTaskModalIsEdit(false);
                                   setTaskModalOpen(true);
                                 }}>

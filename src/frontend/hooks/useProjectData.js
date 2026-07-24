@@ -40,7 +40,7 @@ export const useProjectData = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [taskModalIsEdit, setTaskModalIsEdit] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState(null);
-  const [taskForm, setTaskForm] = useState({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium', image_path: '' });
+  const [taskForm, setTaskForm] = useState({ type: 'Task', status: 'To Do', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium', image_path: '', work_status: 'Not Started', team_assignment: null });
 
   const fetchAllData = async () => {
     try {
@@ -84,7 +84,7 @@ export const useProjectData = () => {
         for (const t of projTasks) {
           const status = t.status || "To Do";
           if (status === "To Do") pending++;
-          else if (status === "In Progress") progress++;
+          else if (status === "Developing" || status === "In Progress") progress++;
           else if (status === "Done") completed++;
           total_est += parseFloat(t.estimate_hours || 0);
         }
@@ -211,7 +211,9 @@ export const useProjectData = () => {
         priority: dataToSave.priority || 'Medium',
         status: dataToSave.status || 'To Do',
         image_path: dataToSave.image_path || null,
-        comments: dataToSave.comments || []
+        comments: dataToSave.comments || [],
+        work_status: dataToSave.work_status || 'Not Started',
+        team_assignment: dataToSave.team_assignment || null
       };
 
       const body = taskModalIsEdit

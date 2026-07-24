@@ -50,7 +50,7 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { story_id, type, name, description, estimate_hours, assigned_user, reporter, end_date, priority, status, image_path, comments } = body;
+    const { story_id, type, name, description, estimate_hours, assigned_user, reporter, end_date, priority, status, work_status, image_path, comments, team_assignment } = body;
 
     if (!story_id || !type || !name) {
       return NextResponse.json({ detail: "story_id, type, and name are required" }, { status: 400 });
@@ -81,8 +81,15 @@ export async function POST(req) {
       end_date: end_date ? new Date(end_date) : null,
       priority: priority || 'Medium',
       status: status || 'To Do',
+      work_status: work_status || 'Not Started',
       image_path: image_path || null,
       comments: comments || [],
+      team_assignment: team_assignment || {
+        developer: { user_id: null, user_name: null, estimate_hours: 0 },
+        tester: { user_id: null, user_name: null, estimate_hours: 0 },
+        code_reviewer: { user_id: null, user_name: null, estimate_hours: 0 },
+        deployer: { user_id: null, user_name: null, estimate_hours: 0 }
+      },
       t_seq,
       custom_id,
       created_at: new Date()

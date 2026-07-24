@@ -45,7 +45,24 @@ const Tasks = () => {
     const taskId = e.dataTransfer.getData('text/plain');
     if (taskId) {
       const backendStatus = targetStatus === 'Todo' ? 'To Do' : targetStatus;
-      handlePartialUpdateTask(taskId, { status: backendStatus });
+      const task = allTasks.find(t => t._id === taskId);
+      const currentWorkStatus = task?.work_status || 'Not Started';
+
+      const TASK_STATUS_WORK_MAP = {
+        'To Do': ['Not Started', 'Ready', 'Planning', 'Waiting for Requirement', 'Waiting for Client'],
+        'Todo': ['Not Started', 'Ready', 'Planning', 'Waiting for Requirement', 'Waiting for Client'],
+        'Developing': ['Not Started', 'In Progress', 'On Hold', 'Blocked', 'Developed'],
+        'Testing': ['Not Started', 'Testing', 'Failed', 'Passed'],
+        'Code Review': ['Not Started', 'Reviewing', 'Failed', 'Passed'],
+        'Deploy': ['Not Started', 'Deploying', 'Failed', 'Passed'],
+        'Deploying': ['Not Started', 'Deploying', 'Failed', 'Passed'],
+        'Done': ['Completed', 'Not Completed']
+      };
+
+      const opts = TASK_STATUS_WORK_MAP[backendStatus] || [];
+      const newWorkStatus = opts.includes(currentWorkStatus) ? currentWorkStatus : (opts[0] || 'Not Started');
+
+      handlePartialUpdateTask(taskId, { status: backendStatus, work_status: newWorkStatus });
     }
   };
 
@@ -102,7 +119,7 @@ const Tasks = () => {
   const normalizeStatus = (status) => {
     const s = (status || '').trim().toLowerCase();
     if (s === 'to do' || s === 'todo') return 'Todo';
-    if (s === 'in progress') return 'In Progress';
+    if (s === 'developing' || s === 'in progress') return 'Developing';
     if (s === 'code review') return 'Code Review';
     if (s === 'testing') return 'Testing';
     if (s === 'deploy') return 'Deploy';
@@ -113,7 +130,7 @@ const Tasks = () => {
   // Pre-populate columns
   const columns = {
     'Todo': [],
-    'In Progress': [],
+    'Developing': [],
     'Code Review': [],
     'Testing': [],
     'Deploy': [],
@@ -177,7 +194,9 @@ const Tasks = () => {
       end_date: task.end_date ? task.end_date.substring(0, 10) : '',
       priority: task.priority || 'Medium',
       image_path: task.image_path || '',
-      comments: task.comments || []
+      comments: task.comments || [],
+      work_status: task.work_status || 'Not Started',
+      team_assignment: task.team_assignment || null
     });
     setActiveTaskId(task._id);
     const parentProjId = storyLookup[task.story_id]?.project?._id;
@@ -200,7 +219,9 @@ const Tasks = () => {
       end_date: '',
       priority: 'Medium',
       image_path: '',
-      comments: []
+      comments: [],
+      work_status: 'Not Started',
+      team_assignment: null
     });
     setActiveTaskId(null);
     setTaskModalIsEdit(false);
@@ -359,7 +380,9 @@ const Tasks = () => {
                     reporter: '',
                     end_date: '',
                     priority: 'Medium',
-                    image_path: ''
+                    image_path: '',
+                    work_status: 'Not Started',
+                    team_assignment: null
                   });
                   setActiveTaskId(null);
                   setTaskModalIsEdit(false);
@@ -418,7 +441,7 @@ const Tasks = () => {
             {Object.entries(columns).map(([status, statusTasks]) => {
               const colHeaderColor = {
                 'Todo': '#64748b',
-                'In Progress': '#0066cc',
+                'Developing': '#0066cc',
                 'Code Review': '#7c3aed',
                 'Testing': '#ea580c',
                 'Deploy': '#059669',

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, FormControl, InputLabel,
   Select, MenuItem, TextField, Button, Dialog, DialogTitle, DialogContent,
-  DialogActions, Chip, Avatar
+  DialogActions, Chip, Avatar, AvatarGroup, Tooltip
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import SearchIcon from '@mui/icons-material/Search';
@@ -27,6 +27,7 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
   const getStatusColor = (status) => {
     switch (status) {
       case 'Done': return 'success';
+      case 'Developing':
       case 'In Progress': return 'primary';
       case 'Testing': return 'info';
       case 'Todo':
@@ -45,6 +46,18 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     }
   };
 
+  const getWorkflowColor = (workStatus) => {
+    switch (workStatus) {
+      case 'Passed':
+      case 'Completed': return 'success';
+      case 'Reviewing':
+      case 'In Progress': return 'primary';
+      case 'Failed': return 'error';
+      case 'Not Started': return 'default';
+      default: return 'info';
+    }
+  };
+
   // Convert raw DB tasks into flat list of rows
   const taskRows = [];
   projects.forEach(proj => {
@@ -52,8 +65,35 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     projStories.forEach(s => {
       const storyTasks = tasksByStory[s._id] || [];
       storyTasks.forEach(t => {
-        const assUser = users.find(u => (u._id || u.user_id) === t.assigned_user);
         const repUser = users.find(u => (u._id || u.user_id) === t.reporter);
+
+        // Resolve all team assignees
+        const teamUsers = [];
+        const addTeamUser = (userId, role) => {
+          if (!userId) return;
+          const u = users.find(x => (x._id || x.user_id || x.id)?.toString() === userId.toString());
+          if (!u) return;
+          const id = u._id || u.user_id || u.id;
+          const existing = teamUsers.find(x => (x._id || x.user_id || x.id)?.toString() === id.toString());
+          if (existing) {
+            if (!existing.roles.includes(role)) {
+              existing.roles.push(role);
+            }
+          } else {
+            teamUsers.push({ ...u, roles: [role] });
+          }
+        };
+
+        if (t.team_assignment) {
+          addTeamUser(t.team_assignment.developer?.user_id, 'Developer');
+          addTeamUser(t.team_assignment.tester?.user_id, 'Tester');
+          addTeamUser(t.team_assignment.code_reviewer?.user_id, 'Code Reviewer');
+          addTeamUser(t.team_assignment.deployer?.user_id, 'Deployer');
+        } else if (t.assigned_user) {
+          addTeamUser(t.assigned_user, 'Assignee');
+        }
+
+        const assigneeStr = teamUsers.map(tu => `${tu.name} (${tu.roles.join(', ')})`).join(', ') || '-';
 
         // Use local date methods to avoid UTC timezone shift (e.g. UTC+5:30 offset)
         const startStr = t.created_at ? (() => { const d = new Date(t.created_at); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })() : '-';
@@ -64,10 +104,12 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
           name: t.name,
           project: proj.name,
           story: s.name,
-          assignee: assUser ? assUser.name : '-',
+          assignee: assigneeStr,
+          assignees: teamUsers,
           reporter: repUser ? repUser.name : '-',
           priority: t.priority || 'Medium',
           status: t.status || 'To Do',
+          workStatus: t.work_status || 'Not Started',
           estimate: t.estimate_hours || 0,
           startDate: startStr,
           dueDate: dueStr
@@ -99,7 +141,7 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
   const handleExportCSV = () => {
     const headers = [
       'Task Name', 'Project', 'Story', 'Assignee', 'Reporter',
-      'Priority', 'Status', 'Estimated Hours', 'Start Date', 'Due Date'
+      'Priority', 'Task Status', 'Workflow Status', 'Estimated Hours', 'Start Date', 'Due Date'
     ];
     const csvRows = [headers.join(',')];
 
@@ -112,6 +154,7 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
         `"${row.reporter}"`,
         `"${row.priority}"`,
         `"${row.status}"`,
+        `"${row.workStatus}"`,
         row.estimate,
         `"${row.startDate}"`,
         `"${row.dueDate}"`
@@ -137,16 +180,28 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     {
       field: 'assignee',
       headerName: 'Assignee',
-      flex: 1,
-      minWidth: 90,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, height: '100%' }}>
-          <Avatar sx={{ width: 18, height: 18, fontSize: '0.58rem', bgcolor: getAvatarColor(params.value), fontWeight: 'bold', color: '#fff' }}>
-            {params.value.charAt(0)}
-          </Avatar>
-          <Typography variant="body2" fontSize="0.75rem">{params.value}</Typography>
-        </Box>
-      )
+      flex: 1.5,
+      minWidth: 150,
+      renderCell: (params) => {
+        const team = params.row.assignees || [];
+        if (team.length === 0) return <Typography variant="body2" fontSize="0.75rem" color="text.secondary">-</Typography>;
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+            <AvatarGroup max={4} sx={{ '& .MuiAvatar-root': { width: 22, height: 22, fontSize: '0.62rem', border: '1px solid rgba(255,255,255,0.1)' } }}>
+              {team.map((u) => (
+                <Tooltip key={u._id || u.user_id || u.id} title={`${u.name} (${u.roles.join(', ')})`} arrow>
+                  <Avatar sx={{ bgcolor: getAvatarColor(u.name), fontWeight: 'bold', color: '#fff' }}>
+                    {u.name.charAt(0).toUpperCase()}
+                  </Avatar>
+                </Tooltip>
+              ))}
+            </AvatarGroup>
+            {team.length === 1 && (
+              <Typography variant="body2" fontSize="0.75rem">{team[0].name}</Typography>
+            )}
+          </Box>
+        );
+      }
     },
     { field: 'reporter', headerName: 'Reporter', flex: 1, minWidth: 90 },
     {
@@ -159,10 +214,18 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     },
     {
       field: 'status',
-      headerName: 'Status',
+      headerName: 'Task Status',
       width: 95,
       renderCell: (params) => (
         <Chip label={params.value} size="small" color={getStatusColor(params.value)} variant="outlined" sx={{ fontWeight: 'bold', fontSize: '0.65rem', height: 20 }} />
+      )
+    },
+    {
+      field: 'workStatus',
+      headerName: 'Workflow Status',
+      width: 120,
+      renderCell: (params) => (
+        <Chip label={params.value} size="small" color={getWorkflowColor(params.value)} variant="filled" sx={{ fontWeight: 'bold', fontSize: '0.65rem', height: 20 }} />
       )
     },
     { field: 'estimate', headerName: 'Est.Hrs', width: 70, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => `${params.value}h` },
@@ -176,7 +239,7 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
       <Card sx={{ border: '1px solid rgba(255,255,255,0.06)', bgcolor: 'background.paper', borderRadius: 3 }}>
         <CardContent sx={{ p: '10px' }}>
           <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 1.5 }}>Task Filter Config</Typography>
-          <Grid container spacing={1.5} alignItems="center">
+          <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
             <Grid xs={12} sm={6} md={4} lg={1.5}>
               <FormControl size="small" fullWidth>
                 <InputLabel>Project</InputLabel>
@@ -240,6 +303,7 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                   <MenuItem value="all">All Statuses</MenuItem>
                   <MenuItem value="Todo">Todo</MenuItem>
                   <MenuItem value="To Do">To Do</MenuItem>
+                  <MenuItem value="Developing">Developing</MenuItem>
                   <MenuItem value="In Progress">In Progress</MenuItem>
                   <MenuItem value="Code Review">Code Review</MenuItem>
                   <MenuItem value="Testing">Testing</MenuItem>
@@ -289,8 +353,10 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
             }}
             disableRowSelectionOnClick
             autoHeight
+            onRowClick={(params) => handleOpenView(params.row)}
             sx={{
               border: 'none',
+              cursor: 'pointer',
               fontSize: '0.78rem',
               '& .MuiDataGrid-columnHeaders': {
                 bgcolor: 'rgba(255, 255, 255, 0.02)',
@@ -353,9 +419,15 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                   </Box>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="text.secondary">Status</Typography>
+                  <Typography variant="caption" color="text.secondary">Task Status</Typography>
                   <Box sx={{ mt: 0.5 }}>
                     <Chip label={selectedRow.status} size="small" color={getStatusColor(selectedRow.status)} variant="outlined" sx={{ fontWeight: 'bold' }} />
+                  </Box>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Workflow Status</Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <Chip label={selectedRow.workStatus} size="small" color={getWorkflowColor(selectedRow.workStatus)} variant="filled" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }} />
                   </Box>
                 </Box>
               </Box>

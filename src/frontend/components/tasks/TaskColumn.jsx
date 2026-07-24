@@ -10,7 +10,7 @@ import TaskCard from './TaskCard';
 const getColumnColors = (status, isDark) => {
   const lightColors = {
     'Todo':         { bg: '#f0f4ff', header: '#e0e8ff', border: '#c7d7fd' },
-    'In Progress':  { bg: '#f0f9ff', header: '#dbeeff', border: '#bae0fd' },
+    'Developing':   { bg: '#f0f9ff', header: '#dbeeff', border: '#bae0fd' },
     'Code Review':  { bg: '#faf5ff', header: '#ede9fe', border: '#d8b4fe' },
     'Testing':      { bg: '#fff7ed', header: '#ffedd5', border: '#fed7aa' },
     'Deploy':       { bg: '#f0fdf4', header: '#dcfce7', border: '#a7f3d0' },
@@ -20,7 +20,7 @@ const getColumnColors = (status, isDark) => {
 
   const darkColors = {
     'Todo':         { bg: '#131924', header: '#1d273a', border: '#2f3f5c' },
-    'In Progress':  { bg: '#101d28', header: '#172b3c', border: '#25445d' },
+    'Developing':   { bg: '#101d28', header: '#172b3c', border: '#25445d' },
     'Code Review':  { bg: '#1b1429', header: '#291d3e', border: '#422f64' },
     'Testing':      { bg: '#251a10', header: '#382818', border: '#594026' },
     'Deploy':       { bg: '#102219', header: '#183426', border: '#26533d' },
@@ -77,8 +77,8 @@ const TaskColumn = ({
         handleDrop(e, status);
       }}
       sx={{
-        width: 295,
-        minWidth: 295,
+        width: 380,
+        minWidth: 380,
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
@@ -154,6 +154,83 @@ const TaskColumn = ({
             }}>
               {tasks.length}
             </Box>
+
+             {(() => {
+              const s = (status || '').trim().toLowerCase();
+              const isTodo = s === 'todo' || s === 'to do';
+              const isDone = s === 'done';
+              const isDeveloping = s === 'developing';
+              const isTesting = s === 'testing';
+              const isCodeReview = s === 'code review';
+              const isDeploy = s === 'deploy' || s === 'deploying';
+
+              const devSum = tasks.reduce((sum, t) => sum + (t.team_assignment?.developer?.estimate_hours || 0), 0);
+              const testerSum = tasks.reduce((sum, t) => sum + (t.team_assignment?.tester?.estimate_hours || 0), 0);
+              const reviewerSum = tasks.reduce((sum, t) => sum + (t.team_assignment?.code_reviewer?.estimate_hours || 0), 0);
+              const deployerSum = tasks.reduce((sum, t) => sum + (t.team_assignment?.deployer?.estimate_hours || 0), 0);
+              
+              if (isTodo || isDone) {
+                const totalEstimateHours = tasks.reduce((sum, t) => sum + (t.estimate_hours || 0), 0);
+                return totalEstimateHours > 0 ? (
+                  <Tooltip title={`Total Estimate Hours: ${totalEstimateHours}h`} arrow placement="top">
+                    <Box sx={{
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.15)' : '#eff6ff',
+                      color: (theme) => theme.palette.mode === 'dark' ? '#a5b4fc' : '#1e40af',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      px: 1.2,
+                      py: 0.2,
+                      borderRadius: 4,
+                      border: '1.5px solid',
+                      borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.3)' : '#bfdbfe',
+                      flexShrink: 0,
+                      ml: 1
+                    }}>
+                      {totalEstimateHours}h
+                    </Box>
+                  </Tooltip>
+                ) : null;
+              }
+
+              const badgeSum = (() => {
+                if (isDeveloping) return devSum;
+                if (isTesting) return testerSum;
+                if (isCodeReview) return reviewerSum;
+                if (isDeploy) return deployerSum;
+                return 0;
+              })();
+
+              return badgeSum > 0 ? (
+                <Tooltip
+                  title={
+                    <Box sx={{ p: 0.5 }}>
+                      <Typography variant="caption" display="block" sx={{ color: '#fff' }}><strong>Developer Total:</strong> {devSum}h</Typography>
+                      <Typography variant="caption" display="block" sx={{ color: '#fff' }}><strong>Tester Total:</strong> {testerSum}h</Typography>
+                      <Typography variant="caption" display="block" sx={{ color: '#fff' }}><strong>Code Reviewer Total:</strong> {reviewerSum}h</Typography>
+                      <Typography variant="caption" display="block" sx={{ color: '#fff' }}><strong>Deployer Total:</strong> {deployerSum}h</Typography>
+                    </Box>
+                  }
+                  arrow
+                  placement="top"
+                >
+                  <Box sx={{
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.15)' : '#eff6ff',
+                    color: (theme) => theme.palette.mode === 'dark' ? '#a5b4fc' : '#1e40af',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    px: 1.2,
+                    py: 0.2,
+                    borderRadius: 4,
+                    border: '1.5px solid',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.3)' : '#bfdbfe',
+                    flexShrink: 0,
+                    ml: 1
+                  }}>
+                    {badgeSum}h
+                  </Box>
+                </Tooltip>
+              ) : null;
+            })()}
 
             {/* '+' Add Task Button right after total count badge */}
             {onCreateTaskInColumn && (

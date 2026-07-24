@@ -17,6 +17,7 @@ const Board = () => {
   const [project, setProject] = useState(null);
   const [stories, setStories] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
 
   // Modals
   const [storyModal, setStoryModal] = useState({ open: false, isEdit: false, id: null, name: '', description: '' });
@@ -34,14 +35,17 @@ const Board = () => {
     reporter: '',
     end_date: '',
     priority: 'Medium',
-    labels: []
+    labels: [],
+    work_status: 'Not Started',
+    team_assignment: null
   });
 
   const fetchBoardData = async () => {
     try {
-      const [projectsRes, storiesRes] = await Promise.all([
+      const [projectsRes, storiesRes, usersRes] = await Promise.all([
         fetch(`${(process.env.NEXT_PUBLIC_API_URL || '')}/projects?company=${company}`),
-        fetch(`${(process.env.NEXT_PUBLIC_API_URL || '')}/stories?project_id=${projectId}`)
+        fetch(`${(process.env.NEXT_PUBLIC_API_URL || '')}/stories?project_id=${projectId}`),
+        fetch(`${(process.env.NEXT_PUBLIC_API_URL || '')}/users?company_name=${company}`)
       ]);
       
       if (projectsRes.ok && storiesRes.ok) {
@@ -62,6 +66,10 @@ const Board = () => {
         } else {
           setTasks([]);
         }
+      }
+
+      if (usersRes && usersRes.ok) {
+        setUsers(await usersRes.json());
       }
     } catch (err) {
       console.error(err);
@@ -133,7 +141,9 @@ const Board = () => {
             end_date: dataToSave.end_date || null,
             priority: dataToSave.priority || 'Medium',
             labels: dataToSave.labels || [],
-            image_path: dataToSave.image_path || null
+            image_path: dataToSave.image_path || null,
+            work_status: dataToSave.work_status || 'Not Started',
+            team_assignment: dataToSave.team_assignment || null
           })
         });
       } else {
@@ -153,7 +163,9 @@ const Board = () => {
             status: dataToSave.status === 'Todo' ? 'To Do' : (dataToSave.status || 'To Do'),
             labels: dataToSave.labels || [],
             image_path: dataToSave.image_path || null,
-            comments: dataToSave.comments || []
+            comments: dataToSave.comments || [],
+            work_status: dataToSave.work_status || 'Not Started',
+            team_assignment: dataToSave.team_assignment || null
           })
         });
       }
@@ -174,7 +186,9 @@ const Board = () => {
           reporter: '',
           end_date: '',
           priority: 'Medium',
-          labels: []
+          labels: [],
+          work_status: 'Not Started',
+          team_assignment: null
         });
         fetchBoardData();
       }
@@ -240,7 +254,7 @@ const Board = () => {
                         <Box>
                           <IconButton size="small" onClick={() => setStoryModal({ open: true, isEdit: true, id: story._id, name: story.name, description: story.description || '' })}><EditIcon fontSize="small"/></IconButton>
                           <IconButton size="small" color="error" onClick={() => handleDeleteStory(story._id)}><DeleteIcon fontSize="small"/></IconButton>
-                          <Button size="small" variant="outlined" sx={{ ml: 2 }} onClick={() => setTaskModal({ open: true, isEdit: false, id: null, storyId: story._id, type: 'Task', status: 'Todo', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium', labels: [] })}>
+                          <Button size="small" variant="outlined" sx={{ ml: 2 }} onClick={() => setTaskModal({ open: true, isEdit: false, id: null, storyId: story._id, type: 'Task', status: 'Todo', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium', labels: [], work_status: 'Not Started', team_assignment: null })}>
                             + Add Task/Bug
                           </Button>
                         </Box>
@@ -257,19 +271,32 @@ const Board = () => {
                                 <Box component="span" sx={{ ml: 2, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: task.type === 'Bug' ? 'rgba(244,67,54,0.1)' : 'rgba(33,150,243,0.1)', color: task.type === 'Bug' ? '#f44336' : '#2196f3' }}>
                                   {task.type}
                                 </Box>
-                                <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: task.status === 'Done' ? 'rgba(76,175,80,0.1)' : task.status === 'In Progress' ? 'rgba(255,152,0,0.1)' : task.status === 'Code Review' ? 'rgba(156,39,176,0.1)' : task.status === 'Deploy' ? 'rgba(0,188,212,0.1)' : 'rgba(158,158,158,0.1)', color: task.status === 'Done' ? '#4caf50' : task.status === 'In Progress' ? '#ff9800' : task.status === 'Code Review' ? '#9c27b0' : task.status === 'Deploy' ? '#00bcd4' : '#9e9e9e' }}>
-                                  {task.status}
-                                </Box>
-                                {task.estimate_hours > 0 && (
-                                  <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', color: 'text.secondary' }}>
-                                    ({task.estimate_hours}h)
-                                  </Box>
-                                )}
+                                <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: task.status === 'Done' ? 'rgba(76,175,80,0.1)' : (task.status === 'Developing' || task.status === 'In Progress') ? 'rgba(255,152,0,0.1)' : task.status === 'Code Review' ? 'rgba(156,39,176,0.1)' : task.status === 'Deploy' ? 'rgba(0,188,212,0.1)' : 'rgba(158,158,158,0.1)', color: task.status === 'Done' ? '#4caf50' : (task.status === 'Developing' || task.status === 'In Progress') ? '#ff9800' : task.status === 'Code Review' ? '#9c27b0' : task.status === 'Deploy' ? '#00bcd4' : '#9e9e9e' }}>
+                                   {task.status}
+                                 </Box>
+                                {(() => {
+                                  const isDevelopingMode = (task.status || '').trim().toLowerCase() === 'developing';
+                                  const isTestingMode = (task.status || '').trim().toLowerCase() === 'testing';
+                                  const isCodeReviewMode = (task.status || '').trim().toLowerCase() === 'code review';
+                                  const isDeployMode = (task.status || '').trim().toLowerCase() === 'deploy' || (task.status || '').trim().toLowerCase() === 'deploying';
+                                  const displayHours = (() => {
+                                    if (isDevelopingMode) return task.team_assignment?.developer?.estimate_hours || 0;
+                                    if (isTestingMode) return task.team_assignment?.tester?.estimate_hours || 0;
+                                    if (isCodeReviewMode) return task.team_assignment?.code_reviewer?.estimate_hours || 0;
+                                    if (isDeployMode) return task.team_assignment?.deployer?.estimate_hours || 0;
+                                    return task.estimate_hours || 0;
+                                  })();
+                                  return displayHours > 0 ? (
+                                    <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', color: 'text.secondary' }}>
+                                      ({displayHours}h)
+                                    </Box>
+                                  ) : null;
+                                })()}
                               </Typography>
                               {task.description && <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{task.description}</Typography>}
                             </Box>
                             <Box>
-                              <IconButton size="small" onClick={() => setTaskModal({ open: true, isEdit: true, id: task._id, storyId: story._id, type: task.type, status: task.status === 'To Do' || task.status === 'Todo' ? 'Todo' : task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium', labels: task.labels || [], comments: task.comments || [] })}><EditIcon fontSize="small"/></IconButton>
+                              <IconButton size="small" onClick={() => setTaskModal({ open: true, isEdit: true, id: task._id, storyId: story._id, type: task.type, status: task.status === 'To Do' || task.status === 'Todo' ? 'Todo' : task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium', labels: task.labels || [], comments: task.comments || [], work_status: task.work_status || 'Not Started', team_assignment: task.team_assignment || null })}><EditIcon fontSize="small"/></IconButton>
                               <IconButton size="small" color="error" onClick={() => handleDeleteTask(task._id)}><DeleteIcon fontSize="small"/></IconButton>
                             </Box>
                           </Paper>
@@ -312,7 +339,7 @@ const Board = () => {
         storiesByProject={{ [projectId]: stories }}
         taskForm={taskModal}
         setTaskForm={setTaskModal}
-        users={[]} // Defaults to standard mock list inside TaskModal
+        users={users}
         onSave={handleSaveTask}
         projects={project ? [project] : []}
         showProjectSelect={false}
