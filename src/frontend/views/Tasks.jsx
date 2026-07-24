@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import {
   Box, CssBaseline, Typography, TextField,
   FormControl, InputLabel, Select, MenuItem, Button, Tooltip, IconButton,
@@ -20,6 +20,8 @@ import TaskColumn from '../components/tasks/TaskColumn';
 
 const Tasks = () => {
   const { company } = useParams();
+  const searchParams = useSearchParams();
+  const taskIdParam = searchParams.get('taskId');
   const {
     username, projects, storiesByProject, tasksByStory, users,
     taskModalOpen, setTaskModalOpen, taskModalIsEdit, setTaskModalIsEdit,
@@ -205,6 +207,15 @@ const Tasks = () => {
     setTaskModalIsEdit(true);
     setTaskModalOpen(true);
   };
+
+  useEffect(() => {
+    if (taskIdParam && allTasks.length > 0 && Object.keys(storyLookup).length > 0) {
+      const task = allTasks.find(t => t._id === taskIdParam);
+      if (task) {
+        handleTaskClick(task);
+      }
+    }
+  }, [taskIdParam, allTasks.length, Object.keys(storyLookup).length]);
 
   const handleCreateTaskInColumn = (columnStatus) => {
     const backendStatus = columnStatus === 'Todo' ? 'To Do' : columnStatus;

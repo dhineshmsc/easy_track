@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Box, Typography, Card, CardContent, Grid, FormControl, InputLabel,
   Select, MenuItem, TextField, Button, Dialog, DialogTitle, DialogContent,
@@ -12,6 +13,8 @@ import { toast } from 'react-hot-toast';
 import { getAvatarColor } from '../../utils/projectsHelper';
 
 const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, users = [] }) => {
+  const { company } = useParams();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [projectFilter, setProjectFilter] = useState('all');
   const [storyFilter, setStoryFilter] = useState('all');
@@ -174,7 +177,23 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
   };
 
   const columns = [
-    { field: 'name', headerName: 'Task Name', flex: 1.5, minWidth: 120, renderCell: (params) => <strong style={{ color: '#6366f1', fontSize: '0.78rem' }}>{params.value}</strong> },
+    {
+      field: 'name',
+      headerName: 'Task Name',
+      flex: 1.5,
+      minWidth: 120,
+      renderCell: (params) => (
+        <strong
+          style={{ color: '#6366f1', fontSize: '0.78rem', cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/${company}/tasks?taskId=${params.row.id}`);
+          }}
+        >
+          {params.value}
+        </strong>
+      )
+    },
     { field: 'project', headerName: 'Project', flex: 1, minWidth: 90 },
     { field: 'story', headerName: 'Story', flex: 1, minWidth: 90 },
     {
