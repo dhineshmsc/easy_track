@@ -10,13 +10,14 @@ import StatCards from '../components/dashboard/StatCards';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
 import MyTasksTable from '../components/dashboard/MyTasksTable';
 import RecentProjects from '../components/dashboard/RecentProjects';
+import RecentStories from '../components/dashboard/RecentStories';
 import { useProjectData } from '../hooks/useProjectData';
 
 const Dashboard = () => {
   const { company } = useParams();
   const username = typeof window !== 'undefined' ? (localStorage.getItem('username') || '') : '';
 
-  const { projects, tasksByStory, users } = useProjectData();
+  const { projects, storiesByProject, tasksByStory, users } = useProjectData();
 
 
   // Flatten tasks across all projects & stories
@@ -65,7 +66,14 @@ const Dashboard = () => {
                 </Box>
               </Box>
 
-              <RecentProjects projects={projects} users={users} />
+              <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', lg: 'row' } }}>
+                <Box sx={{ width: { xs: '100%', lg: 'calc(50% - 16px)' }, flexShrink: 0 }}>
+                  <RecentStories storiesByProject={storiesByProject} projects={projects} users={users} />
+                </Box>
+                <Box sx={{ width: { xs: '100%', lg: 'calc(50% - 16px)' }, flexShrink: 0 }}>
+                  <RecentProjects projects={projects} users={users} />
+                </Box>
+              </Box>
             </Box>
           </Box>
         </Box>
