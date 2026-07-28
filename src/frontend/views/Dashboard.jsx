@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { Box, CssBaseline, Grid } from '@mui/material';
+import { Box, CssBaseline } from '@mui/material';
 
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
@@ -10,10 +10,19 @@ import StatCards from '../components/dashboard/StatCards';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
 import MyTasksTable from '../components/dashboard/MyTasksTable';
 import RecentProjects from '../components/dashboard/RecentProjects';
+import { useProjectData } from '../hooks/useProjectData';
 
 const Dashboard = () => {
   const { company } = useParams();
   const username = typeof window !== 'undefined' ? (localStorage.getItem('username') || '') : '';
+
+  const { projects, tasksByStory, users } = useProjectData();
+
+
+  // Flatten tasks across all projects & stories
+  const allTasks = React.useMemo(() => {
+    return Object.values(tasksByStory || {}).flat();
+  }, [tasksByStory]);
 
   return (
     <>
@@ -45,18 +54,18 @@ const Dashboard = () => {
             <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
               <WelcomeSection company={company} username={username} />
               
-              <StatCards />
+              <StatCards projects={projects} users={users} allTasks={allTasks} />
 
-              <Grid container spacing={4} sx={{ mb: 4 }}>
-                <Grid xs={12} lg={8}>
-                  <MyTasksTable />
-                </Grid>
-                <Grid xs={12} lg={4}>
-                  <ActivityFeed />
-                </Grid>
-              </Grid>
+              <Box sx={{ display: 'flex', gap: 4, mb: 4, flexDirection: { xs: 'column', lg: 'row' } }}>
+                <Box sx={{ width: { xs: '100%', lg: 'calc(80% - 16px)' }, flexShrink: 0 }}>
+                  <MyTasksTable tasks={allTasks} users={users} />
+                </Box>
+                <Box sx={{ width: { xs: '100%', lg: 'calc(20% - 16px)' }, flexShrink: 0 }}>
+                  <ActivityFeed projects={projects} users={users} allTasks={allTasks} />
+                </Box>
+              </Box>
 
-              <RecentProjects />
+              <RecentProjects projects={projects} users={users} />
             </Box>
           </Box>
         </Box>

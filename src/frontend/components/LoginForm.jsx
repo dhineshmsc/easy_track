@@ -52,6 +52,7 @@ const LoginForm = ({ onSuccess, onForgotPassword, onFirstLogin }) => {
         setAuthCookie(data);
         if (data.name) localStorage.setItem('username', data.name);
         if (data.user_id) localStorage.setItem('user_id', data.user_id);
+        if (data.role) localStorage.setItem('role', data.role);
         if (data.token) localStorage.setItem('token', data.token);
         
         if (data.is_first_login && onFirstLogin) {
@@ -64,7 +65,7 @@ const LoginForm = ({ onSuccess, onForgotPassword, onFirstLogin }) => {
         const errData = await loginResponse.json();
         toast.error(errData.detail || "unable to login");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to connect to the backend server to login.");
     }
   };

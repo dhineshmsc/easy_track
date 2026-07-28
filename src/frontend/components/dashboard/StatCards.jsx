@@ -9,16 +9,34 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
-const stats = [
-  { title: 'Total Projects', value: '12', icon: <FolderIcon />, color: '#6366f1', trend: '+2 this week', positive: true },
-  { title: 'Total Users', value: '48', icon: <GroupIcon />, color: '#10b981', trend: '+5 this month', positive: true },
-  { title: 'Total Tasks', value: '254', icon: <AssignmentIcon />, color: '#3b82f6', trend: '+34 this week', positive: true },
-  { title: 'Completed Tasks', value: '186', icon: <CheckCircleIcon />, color: '#22c55e', trend: '+12% completion', positive: true },
-  { title: 'Pending Tasks', value: '56', icon: <HourglassEmptyIcon />, color: '#f59e0b', trend: '-5% backlog', positive: true },
-  { title: 'Overdue Tasks', value: '12', icon: <WarningAmberIcon />, color: '#ef4444', trend: '+2 since yesterday', positive: false },
-];
+const StatCards = ({ projects = [], users = [], allTasks = [] }) => {
+  const totalProjects = projects.length;
+  const totalUsers = users.length;
+  const totalTasks = allTasks.length;
+  
+  const completedTasks = allTasks.filter(t => (t.status || '').trim().toLowerCase() === 'done').length;
+  const pendingTasks = allTasks.filter(t => {
+    const s = (t.status || '').trim().toLowerCase();
+    return s === 'to do' || s === 'todo';
+  }).length;
+  
+  const overdueTasks = allTasks.filter(t => {
+    const isDone = (t.status || '').trim().toLowerCase() === 'done';
+    return !isDone && t.end_date && new Date(t.end_date) < new Date();
+  }).length;
 
-const StatCards = () => {
+  const openTasks = allTasks.filter(t => (t.status || '').trim().toLowerCase() !== 'done').length;
+  const completionRate = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  const stats = [
+    { title: 'Total Projects', value: String(totalProjects), icon: <FolderIcon />, color: '#6366f1', trend: `${totalProjects} active`, positive: true },
+    { title: 'Total Users', value: String(totalUsers), icon: <GroupIcon />, color: '#10b981', trend: `${totalUsers} active members`, positive: true },
+    { title: 'Total Tasks', value: String(totalTasks), icon: <AssignmentIcon />, color: '#3b82f6', trend: `${openTasks} open tasks`, positive: true },
+    { title: 'Completed Tasks', value: String(completedTasks), icon: <CheckCircleIcon />, color: '#22c55e', trend: `${completionRate}% completion rate`, positive: true },
+    { title: 'Pending Tasks', value: String(pendingTasks), icon: <HourglassEmptyIcon />, color: '#f59e0b', trend: `${pendingTasks} not started`, positive: true },
+    { title: 'Overdue Tasks', value: String(overdueTasks), icon: <WarningAmberIcon />, color: '#ef4444', trend: `${overdueTasks} overdue`, positive: overdueTasks === 0 },
+  ];
+
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>
       {stats.map((stat, index) => (

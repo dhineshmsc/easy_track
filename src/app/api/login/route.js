@@ -43,6 +43,7 @@ export async function POST(req) {
       message: "Login success",
       user_id: user.user_id,
       name: user.name || "",
+      role: user.role || "Developer",
       company: user.company_name || "default",
       token: token,
       is_first_login: !!user.is_first_login

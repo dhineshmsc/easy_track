@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, FormControl, InputLabel,
   Select, MenuItem, TextField, Button, Dialog, DialogTitle, DialogContent,
-  DialogActions, Chip, Avatar
+  DialogActions, Avatar
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import SearchIcon from '@mui/icons-material/Search';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import { toast } from 'react-hot-toast';
 import { getAvatarColor } from '../../utils/projectsHelper';
 
@@ -107,7 +106,6 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
       testing,
       deploy,
       done,
-      completedTasks: done,
       totalHours,
       overdueTasks
     };
@@ -134,7 +132,7 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     const headers = [
       'Employee ID', 'User Name', 'Email', 'Role', 'Assigned Projects',
       'Assigned Stories', 'Assigned Tasks', 'Todo', 'Develop', 'Code Review',
-      'Testing', 'Deploy', 'Done', 'Completed Tasks', 'Total Hours', 'Overdue Tasks'
+      'Testing', 'Deploy', 'Done', 'Estimate Hrs', 'Overdue Tasks'
     ];
     const csvRows = [headers.join(',')];
 
@@ -153,7 +151,6 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
         row.testing,
         row.deploy,
         row.done,
-        row.completedTasks,
         row.totalHours,
         row.overdueTasks
       ];
@@ -189,6 +186,7 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     },
     { field: 'email', headerName: 'Email', flex: 2, minWidth: 150 },
     { field: 'role', headerName: 'Role', flex: 1, minWidth: 90 },
+    { field: 'assignedProjects', headerName: 'Project', flex: 1.5, minWidth: 120 },
     { field: 'assignedStories', headerName: 'Stories', width: 70, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'assignedTasks', headerName: 'Tasks', width: 65, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'todo', headerName: 'Todo', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
@@ -196,9 +194,8 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     { field: 'codeReview', headerName: 'Code Review', width: 95, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'testing', headerName: 'Test', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'deploy', headerName: 'Deploy', width: 70, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'done', headerName: 'Done', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
-    { field: 'completedTasks', headerName: 'Completed', width: 90, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: '#16a34a', fontSize: '0.78rem' }}>{params.value}</strong> },
-    { field: 'totalHours', headerName: 'Hrs', width: 60, type: 'number', headerAlign: 'center', align: 'center' },
+    { field: 'done', headerName: 'Done', width: 60, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: '#16a34a', fontSize: '0.78rem' }}>{params.value}</strong> },
+    { field: 'totalHours', headerName: 'Estimate Hrs', width: 100, type: 'number', headerAlign: 'center', align: 'center' },
     { field: 'overdueTasks', headerName: 'Overdue', width: 75, type: 'number', headerAlign: 'center', align: 'center', renderCell: (params) => <strong style={{ color: params.value > 0 ? '#ef4444' : '#10b981', fontSize: '0.78rem' }}>{params.value}</strong> },
   ];
 
@@ -360,8 +357,8 @@ const UserReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                     <Typography variant="h6" fontWeight="bold">{selectedRow.deploy}</Typography>
                   </Grid>
                   <Grid xs={4}>
-                    <Typography variant="caption" color="text.secondary">Completed Tasks</Typography>
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'success.main' }}>{selectedRow.completedTasks}</Typography>
+                    <Typography variant="caption" color="text.secondary">Done Tasks</Typography>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'success.main' }}>{selectedRow.done}</Typography>
                   </Grid>
                   <Grid xs={4}>
                     <Typography variant="caption" color="text.secondary">Overdue Tasks</Typography>
