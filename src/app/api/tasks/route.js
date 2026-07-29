@@ -33,6 +33,10 @@ export async function GET(req) {
         t.created_at = t.created_at.toISOString();
       }
 
+      if (t.updated_at && t.updated_at instanceof Date) {
+        t.updated_at = t.updated_at.toISOString();
+      }
+
       if (t.end_date && t.end_date instanceof Date) {
         t.end_date = t.end_date.toISOString();
       }

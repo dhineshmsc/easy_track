@@ -15,6 +15,9 @@ export async function GET(req, { params }) {
     if (doc.created_at && doc.created_at instanceof Date) {
       doc.created_at = doc.created_at.toISOString();
     }
+    if (doc.updated_at && doc.updated_at instanceof Date) {
+      doc.updated_at = doc.updated_at.toISOString();
+    }
     if (doc.end_date && doc.end_date instanceof Date) {
       doc.end_date = doc.end_date.toISOString();
     }
@@ -47,6 +50,9 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ detail: "No fields to update" }, { status: 400 });
     }
 
+    // Always set updated_at on edit
+    updateData.updated_at = new Date();
+
     const tasksCol = await getTasksCol();
     await tasksCol.updateOne(
       { _id: new ObjectId(id) },
@@ -64,6 +70,10 @@ export async function PUT(req, { params }) {
       await tasksCol.updateOne({ _id: new ObjectId(id) }, { $set: { created_at: doc.created_at } });
     } else if (doc.created_at instanceof Date) {
       doc.created_at = doc.created_at.toISOString();
+    }
+
+    if (doc.updated_at && doc.updated_at instanceof Date) {
+      doc.updated_at = doc.updated_at.toISOString();
     }
 
     if (doc.end_date && doc.end_date instanceof Date) {

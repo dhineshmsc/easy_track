@@ -11,6 +11,7 @@ import ActivityFeed from '../components/dashboard/ActivityFeed';
 import MyTasksTable from '../components/dashboard/MyTasksTable';
 import RecentProjects from '../components/dashboard/RecentProjects';
 import RecentStories from '../components/dashboard/RecentStories';
+import RunningStatusTable from '../components/dashboard/RunningStatusTable';
 import { useProjectData } from '../hooks/useProjectData';
 
 const Dashboard = () => {
@@ -24,6 +25,11 @@ const Dashboard = () => {
   const allTasks = React.useMemo(() => {
     return Object.values(tasksByStory || {}).flat();
   }, [tasksByStory]);
+
+  // Flatten stories across all projects
+  const allStories = React.useMemo(() => {
+    return Object.values(storiesByProject || {}).flat();
+  }, [storiesByProject]);
 
   return (
     <>
@@ -55,22 +61,27 @@ const Dashboard = () => {
             <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
               <WelcomeSection company={company} username={username} />
               
-              <StatCards projects={projects} users={users} allTasks={allTasks} />
+              <StatCards projects={projects} users={users} allTasks={allTasks} stories={allStories} />
 
-              <Box sx={{ display: 'flex', gap: 4, mb: 4, flexDirection: { xs: 'column', lg: 'row' } }}>
-                <Box sx={{ width: { xs: '100%', lg: 'calc(80% - 16px)' }, flexShrink: 0 }}>
-                  <MyTasksTable tasks={allTasks} users={users} />
-                </Box>
-                <Box sx={{ width: { xs: '100%', lg: 'calc(20% - 16px)' }, flexShrink: 0 }}>
-                  <ActivityFeed projects={projects} users={users} allTasks={allTasks} />
-                </Box>
+              <Box sx={{ width: '100%', mb: 4 }}>
+                <RunningStatusTable tasks={allTasks} users={users} stories={allStories} />
+              </Box>
+
+              <Box sx={{ width: '100%', mb: 4 }}>
+                <MyTasksTable tasks={allTasks} users={users} stories={allStories} />
               </Box>
 
               <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', lg: 'row' } }}>
-                <Box sx={{ width: { xs: '100%', lg: 'calc(50% - 16px)' }, flexShrink: 0 }}>
+                {/* Recent Activities (Left Column, 33.3% width) */}
+                <Box sx={{ width: { xs: '100%', lg: 'calc(33.33% - 21.3px)' }, flexShrink: 0 }}>
+                  <ActivityFeed projects={projects} users={users} allTasks={allTasks} storiesByProject={storiesByProject} />
+                </Box>
+                {/* Recent Stories (Middle Column, 33.3% width) */}
+                <Box sx={{ width: { xs: '100%', lg: 'calc(33.33% - 21.3px)' }, flexShrink: 0 }}>
                   <RecentStories storiesByProject={storiesByProject} projects={projects} users={users} />
                 </Box>
-                <Box sx={{ width: { xs: '100%', lg: 'calc(50% - 16px)' }, flexShrink: 0 }}>
+                {/* Recent Projects (Right Column, 33.3% width) */}
+                <Box sx={{ width: { xs: '100%', lg: 'calc(33.33% - 21.3px)' }, flexShrink: 0 }}>
                   <RecentProjects projects={projects} users={users} />
                 </Box>
               </Box>

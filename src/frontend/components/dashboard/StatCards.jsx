@@ -1,7 +1,7 @@
 import React from 'react';
 import { Grid, Box, Typography, Paper } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
-import GroupIcon from '@mui/icons-material/Group';
+import BookIcon from '@mui/icons-material/Book';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
@@ -9,9 +9,9 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
-const StatCards = ({ projects = [], users = [], allTasks = [] }) => {
+const StatCards = ({ projects = [], _users = [], allTasks = [], stories = [] }) => {
   const totalProjects = projects.length;
-  const totalUsers = users.length;
+  const totalStories = stories.length;
   const totalTasks = allTasks.length;
   
   const completedTasks = allTasks.filter(t => (t.status || '').trim().toLowerCase() === 'done').length;
@@ -30,9 +30,9 @@ const StatCards = ({ projects = [], users = [], allTasks = [] }) => {
 
   const stats = [
     { title: 'Total Projects', value: String(totalProjects), icon: <FolderIcon />, color: '#6366f1', trend: `${totalProjects} active`, positive: true },
-    { title: 'Total Users', value: String(totalUsers), icon: <GroupIcon />, color: '#10b981', trend: `${totalUsers} active members`, positive: true },
+    { title: 'Total Story', value: String(totalStories), icon: <BookIcon />, color: '#8b5cf6', trend: `${totalStories} total stories`, positive: true },
     { title: 'Total Tasks', value: String(totalTasks), icon: <AssignmentIcon />, color: '#3b82f6', trend: `${openTasks} open tasks`, positive: true },
-    { title: 'Completed Tasks', value: String(completedTasks), icon: <CheckCircleIcon />, color: '#22c55e', trend: `${completionRate}% completion rate`, positive: true },
+    { title: 'Done Tasks', value: String(completedTasks), icon: <CheckCircleIcon />, color: '#22c55e', trend: `${completionRate}% completion rate`, positive: true },
     { title: 'Pending Tasks', value: String(pendingTasks), icon: <HourglassEmptyIcon />, color: '#f59e0b', trend: `${pendingTasks} not started`, positive: true },
     { title: 'Overdue Tasks', value: String(overdueTasks), icon: <WarningAmberIcon />, color: '#ef4444', trend: `${overdueTasks} overdue`, positive: overdueTasks === 0 },
   ];
@@ -40,7 +40,7 @@ const StatCards = ({ projects = [], users = [], allTasks = [] }) => {
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>
       {stats.map((stat, index) => (
-        <Grid xs={12} sm={6} md={4} key={index}>
+        <Grid item xs={12} sm={6} md={4} key={index}>
           <Paper sx={{
             p: 3,
             borderRadius: 3,
