@@ -44,6 +44,9 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
     { text: 'Documents', icon: <BookIcon />, path: `/${currentCompany}/documents` },
   ];
 
+
+
+
   return (
     <Box sx={{
       width: isMinimized ? 80 : 260,
@@ -56,12 +59,12 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
       flexDirection: 'column',
       transition: 'width 0.3s ease'
     }}>
-      <Box sx={{ 
-        p: isMinimized ? 2 : 3, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: isMinimized ? 'center' : 'space-between', 
-        gap: isMinimized ? 0 : 2 
+      <Box sx={{
+        p: isMinimized ? 2 : 3,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: isMinimized ? 'center' : 'space-between',
+        gap: isMinimized ? 0 : 2
       }}>
         {!isMinimized && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -85,20 +88,20 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
           {isMinimized ? <ChevronRightIcon /> : <ChevronLeftIcon />}
         </IconButton>
       </Box>
-      
+
       {isMinimized && (
-         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-           <Box
-             component="img"
-             src="/logo.png"
-             alt="Logo"
-             sx={{ width: 32, height: 32, borderRadius: 1, objectFit: 'contain' }}
-           />
-         </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <Box
+            component="img"
+            src="/logo.png"
+            alt="Logo"
+            sx={{ width: 32, height: 32, borderRadius: 1, objectFit: 'contain' }}
+          />
+        </Box>
       )}
 
       <Divider />
-      
+
       <List sx={{ px: isMinimized ? 1 : 2, pt: 2, flex: 1 }}>
         {menuItems.map((item) => {
           const isActive = item.text === activeMenu;
@@ -120,11 +123,11 @@ const Sidebar = ({ company, activeMenu = 'Dashboard' }) => {
                     }
                   }}
                 >
-                  <ListItemIcon sx={{ 
-                    minWidth: isMinimized ? 0 : 40, 
+                  <ListItemIcon sx={{
+                    minWidth: isMinimized ? 0 : 40,
                     mr: isMinimized ? 0 : 2,
                     justifyContent: 'center',
-                    color: isActive ? 'inherit' : 'text.secondary' 
+                    color: isActive ? 'inherit' : 'text.secondary'
                   }}>
                     {item.icon}
                   </ListItemIcon>

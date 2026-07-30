@@ -58,6 +58,7 @@ export const useProjectData = () => {
 
       for (const p of projectsData) {
         sMap[p._id] = [];
+        tMap[`proj_${p._id}`] = [];
       }
       for (const s of storiesData) {
         tMap[s._id] = [];
@@ -66,15 +67,18 @@ export const useProjectData = () => {
         }
       }
       for (const t of tasksData) {
-        if (tMap[t.story_id]) {
+        if (t.story_id && tMap[t.story_id]) {
           tMap[t.story_id].push(t);
+        } else if (t.project_id && tMap[`proj_${t.project_id}`]) {
+          tMap[`proj_${t.project_id}`].push(t);
         }
       }
 
       setProjects(projectsData.map(p => {
         const projStories = sMap[p._id] || [];
         const storyIds = projStories.map(s => s._id);
-        const projTasks = tasksData.filter(t => storyIds.includes(t.story_id));
+        const projTasks = tasksData.filter(t => storyIds.includes(t.story_id) || t.project_id === p._id);
+
 
         let pending = 0;
         let progress = 0;

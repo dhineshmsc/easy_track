@@ -196,7 +196,7 @@ const AttachmentZone = () => {
       {attachments.length > 0 && (
         <Grid container spacing={2}>
           {attachments.map((file) => (
-            <Grid item xs={12} sm={6} md={4} key={file.id}>
+            <Grid xs={12} sm={6} md={4} key={file.id}>
               <Card sx={{
                 bgcolor: '#1c1c1e',
                 border: '1px solid rgba(255,255,255,0.08)',

@@ -1,23 +1,30 @@
 import { NextResponse } from 'next/server';
-import { getTasksCol, getStoriesCol } from '../../../backend/db';
+import { getTasksCol, getStoriesCol, getProjectsCol } from '../../../backend/db';
 import { ObjectId } from 'mongodb';
+
 
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const story_id = searchParams.get('story_id');
     const story_ids_param = searchParams.get('story_ids');
-
-    if (!story_id && !story_ids_param) {
-      return NextResponse.json({ detail: "story_id or story_ids is required" }, { status: 400 });
-    }
+    const project_id = searchParams.get('project_id');
+    const project_ids_param = searchParams.get('project_ids');
 
     const tasksCol = await getTasksCol();
     let query = {};
+
     if (story_id) {
-      query = { story_id };
+      query.story_id = story_id;
+    } else if (story_ids_param) {
+      query.story_id = { $in: story_ids_param.split(',') };
+    } else if (project_id) {
+      query.project_id = project_id;
+    } else if (project_ids_param) {
+      query.project_id = { $in: project_ids_param.split(',') };
     } else {
-      query = { story_id: { $in: story_ids_param.split(',') } };
+      // If no parameter provided, fetch all tasks
+      query = {};
     }
 
     const cursor = tasksCol.find(query).sort({ created_at: -1 });
@@ -54,28 +61,50 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { story_id, type, name, description, estimate_hours, assigned_user, reporter, end_date, priority, status, work_status, image_path, comments, team_assignment } = body;
+    const { story_id, project_id, type, name, description, estimate_hours, assigned_user, reporter, end_date, priority, status, work_status, image_path, comments, team_assignment } = body;
 
-    if (!story_id || !type || !name) {
-      return NextResponse.json({ detail: "story_id, type, and name are required" }, { status: 400 });
-    }
-
-    const storiesCol = await getStoriesCol();
-    const story = await storiesCol.findOne({ _id: new ObjectId(story_id) });
-
-    if (!story) {
-      return NextResponse.json({ detail: "Story not found" }, { status: 404 });
+    if ((!story_id && !project_id) || !type || !name) {
+      return NextResponse.json({ detail: "story_id or project_id, type, and name are required" }, { status: 400 });
     }
 
     const tasksCol = await getTasksCol();
-    const count = await tasksCol.countDocuments({ story_id });
-    const t_seq = count + 1;
+    let custom_id = '';
+    let resolvedStoryId = story_id || null;
+    let resolvedProjectId = project_id || null;
 
-    const prefix = type === "Task" ? "t" : "b";
-    const custom_id = `${story.custom_id}${prefix}${t_seq}`;
+    if (story_id) {
+      const storiesCol = await getStoriesCol();
+      let storyDoc = null;
+      try { storyDoc = await storiesCol.findOne({ _id: new ObjectId(story_id) }); } catch(e) {}
+      if (!storyDoc) {
+        storyDoc = await storiesCol.findOne({ id: story_id });
+      }
+      if (storyDoc) {
+        resolvedProjectId = storyDoc.project_id || resolvedProjectId;
+        const count = await tasksCol.countDocuments({ story_id });
+        const t_seq = count + 1;
+        const prefix = type === "Task" ? "t" : "b";
+        custom_id = `${storyDoc.custom_id || 'S'}${prefix}${t_seq}`;
+      }
+    }
+
+    if (!custom_id && project_id) {
+      const projectsCol = await getProjectsCol();
+      let projDoc = null;
+      try { projDoc = await projectsCol.findOne({ _id: new ObjectId(project_id) }); } catch(e) {}
+      if (!projDoc) {
+        projDoc = await projectsCol.findOne({ id: project_id });
+      }
+      const count = await tasksCol.countDocuments({ project_id });
+      const t_seq = count + 1;
+      const prefix = type === "Task" ? "t" : "b";
+      const pCode = projDoc?.key || projDoc?.name?.substring(0, 3)?.toUpperCase() || 'PRJ';
+      custom_id = `${pCode}-${prefix}${t_seq}`;
+    }
 
     const task_doc = {
-      story_id,
+      story_id: resolvedStoryId,
+      project_id: resolvedProjectId,
       type,
       name,
       description: description || null,
@@ -84,7 +113,7 @@ export async function POST(req) {
       reporter: reporter || null,
       end_date: end_date ? new Date(end_date) : null,
       priority: priority || 'Medium',
-      status: status || 'To Do',
+      status: status || 'Todo',
       work_status: work_status || 'Not Started',
       image_path: image_path || null,
       comments: comments || [],
@@ -94,7 +123,6 @@ export async function POST(req) {
         code_reviewer: { user_id: null, user_name: null, estimate_hours: 0 },
         deployer: { user_id: null, user_name: null, estimate_hours: 0 }
       },
-      t_seq,
       custom_id,
       created_at: new Date()
     };
@@ -112,3 +140,4 @@ export async function POST(req) {
     return NextResponse.json({ detail: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
+

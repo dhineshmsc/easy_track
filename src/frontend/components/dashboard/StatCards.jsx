@@ -40,7 +40,7 @@ const StatCards = ({ projects = [], _users = [], allTasks = [], stories = [] }) 
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>
       {stats.map((stat, index) => (
-        <Grid item xs={12} sm={6} md={4} key={index}>
+        <Grid xs={12} sm={6} md={4} key={index}>
           <Paper sx={{
             p: 3,
             borderRadius: 3,

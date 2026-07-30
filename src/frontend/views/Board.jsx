@@ -9,10 +9,12 @@ import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
 import { toast } from 'react-hot-toast';
 import TaskModal from '../components/projects/TaskModal';
+import { useWorkflow } from '../context/WorkflowContext';
 
 const Board = () => {
   const { company, projectId } = useParams();
   const username = typeof window !== 'undefined' ? (localStorage.getItem('username') || '') : '';
+  const { isStoryEnabled, stageColors } = useWorkflow();
   
   const [project, setProject] = useState(null);
   const [stories, setStories] = useState([]);
@@ -56,13 +58,16 @@ const Board = () => {
         const fetchedStories = await storiesRes.json();
         setStories(fetchedStories);
         
-        // Fetch tasks for all stories in a single optimized request
+        // Fetch tasks by story_ids or project_id directly
+        let tRes;
         if (fetchedStories.length > 0) {
           const storyIds = fetchedStories.map(s => s._id).join(',');
-          const tRes = await fetch(`${(process.env.NEXT_PUBLIC_API_URL || '')}/tasks?story_ids=${storyIds}`);
-          if (tRes.ok) {
-            setTasks(await tRes.json());
-          }
+          tRes = await fetch(`${(process.env.NEXT_PUBLIC_API_URL || '')}/tasks?story_ids=${storyIds}`);
+        } else {
+          tRes = await fetch(`${(process.env.NEXT_PUBLIC_API_URL || '')}/tasks?project_id=${projectId}`);
+        }
+        if (tRes && tRes.ok) {
+          setTasks(await tRes.json());
         } else {
           setTasks([]);
         }
@@ -75,6 +80,7 @@ const Board = () => {
       console.error(err);
     }
   };
+
 
   useEffect(() => {
     fetchBoardData();
@@ -232,14 +238,20 @@ const Board = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
               <Typography variant="h5" fontWeight="bold">Project Dashboard</Typography>
-              <Button variant="contained" color="secondary" startIcon={<AddIcon />} onClick={() => setStoryModal({ open: true, isEdit: false, id: null, name: '', description: '' })}>
-                Create Story
-              </Button>
+              {isStoryEnabled ? (
+                <Button variant="contained" color="secondary" startIcon={<AddIcon />} onClick={() => setStoryModal({ open: true, isEdit: false, id: null, name: '', description: '' })}>
+                  Create Story
+                </Button>
+              ) : (
+                <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => setTaskModal({ open: true, isEdit: false, id: null, storyId: null, type: 'Task', status: 'Todo', name: '', description: '', estimateHours: 0, assigned_user: '', reporter: '', end_date: '', priority: 'Medium', labels: [], work_status: 'Not Started', team_assignment: null })}>
+                  Add Task / Bug
+                </Button>
+              )}
             </Box>
             
             <Box sx={{ maxWidth: '100%' }}>
               <Grid container spacing={3}>
-                {stories.map(story => (
+                {isStoryEnabled && stories.map(story => (
                   <Grid xs={12} key={story._id}>
                     <Paper sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2, borderLeft: '4px solid #4caf50' }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -271,27 +283,9 @@ const Board = () => {
                                 <Box component="span" sx={{ ml: 2, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: task.type === 'Bug' ? 'rgba(244,67,54,0.1)' : 'rgba(33,150,243,0.1)', color: task.type === 'Bug' ? '#f44336' : '#2196f3' }}>
                                   {task.type}
                                 </Box>
-                                <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: task.status === 'Done' ? 'rgba(76,175,80,0.1)' : (task.status === 'Developing' || task.status === 'In Progress') ? 'rgba(255,152,0,0.1)' : task.status === 'Code Review' ? 'rgba(156,39,176,0.1)' : task.status === 'Deploy' ? 'rgba(0,188,212,0.1)' : 'rgba(158,158,158,0.1)', color: task.status === 'Done' ? '#4caf50' : (task.status === 'Developing' || task.status === 'In Progress') ? '#ff9800' : task.status === 'Code Review' ? '#9c27b0' : task.status === 'Deploy' ? '#00bcd4' : '#9e9e9e' }}>
+                                <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: stageColors[task.status] ? `${stageColors[task.status]}20` : 'rgba(158,158,158,0.1)', color: stageColors[task.status] || '#9e9e9e', fontWeight: 'bold' }}>
                                    {task.status}
                                  </Box>
-                                {(() => {
-                                  const isDevelopingMode = (task.status || '').trim().toLowerCase() === 'developing';
-                                  const isTestingMode = (task.status || '').trim().toLowerCase() === 'testing';
-                                  const isCodeReviewMode = (task.status || '').trim().toLowerCase() === 'code review';
-                                  const isDeployMode = (task.status || '').trim().toLowerCase() === 'deploy' || (task.status || '').trim().toLowerCase() === 'deploying';
-                                  const displayHours = (() => {
-                                    if (isDevelopingMode) return task.team_assignment?.developer?.estimate_hours || 0;
-                                    if (isTestingMode) return task.team_assignment?.tester?.estimate_hours || 0;
-                                    if (isCodeReviewMode) return task.team_assignment?.code_reviewer?.estimate_hours || 0;
-                                    if (isDeployMode) return task.team_assignment?.deployer?.estimate_hours || 0;
-                                    return task.estimate_hours || 0;
-                                  })();
-                                  return displayHours > 0 ? (
-                                    <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', color: 'text.secondary' }}>
-                                      ({displayHours}h)
-                                    </Box>
-                                  ) : null;
-                                })()}
                               </Typography>
                               {task.description && <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{task.description}</Typography>}
                             </Box>
@@ -308,6 +302,39 @@ const Board = () => {
                     </Paper>
                   </Grid>
                 ))}
+
+                {(!isStoryEnabled || stories.length === 0) && (
+                  <Grid xs={12}>
+                    <Paper sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
+                      <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Project Direct Tasks & Bugs</Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {tasks.map(task => (
+                          <Paper key={task._id} sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: 'background.default', borderLeft: `3px solid ${task.type === 'Bug' ? '#f44336' : '#2196f3'}` }}>
+                            <Box>
+                              <Typography variant="body1">
+                                <strong>{task.custom_id}</strong> : {task.name}
+                                <Box component="span" sx={{ ml: 2, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: task.type === 'Bug' ? 'rgba(244,67,54,0.1)' : 'rgba(33,150,243,0.1)', color: task.type === 'Bug' ? '#f44336' : '#2196f3' }}>
+                                  {task.type}
+                                </Box>
+                                <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', px: 1, py: 0.5, borderRadius: 1, bgcolor: stageColors[task.status] ? `${stageColors[task.status]}20` : 'rgba(158,158,158,0.1)', color: stageColors[task.status] || '#9e9e9e', fontWeight: 'bold' }}>
+                                   {task.status}
+                                 </Box>
+                              </Typography>
+                              {task.description && <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{task.description}</Typography>}
+                            </Box>
+                            <Box>
+                              <IconButton size="small" onClick={() => setTaskModal({ open: true, isEdit: true, id: task._id, storyId: null, type: task.type, status: task.status, name: task.name, description: task.description || '', estimateHours: task.estimate_hours || 0, assigned_user: task.assigned_user || '', reporter: task.reporter || '', end_date: task.end_date ? task.end_date.substring(0, 10) : '', priority: task.priority || 'Medium', labels: task.labels || [], comments: task.comments || [], work_status: task.work_status || 'Not Started', team_assignment: task.team_assignment || null })}><EditIcon fontSize="small"/></IconButton>
+                              <IconButton size="small" color="error" onClick={() => handleDeleteTask(task._id)}><DeleteIcon fontSize="small"/></IconButton>
+                            </Box>
+                          </Paper>
+                        ))}
+                        {tasks.length === 0 && (
+                          <Typography variant="body2" color="text.secondary">No tasks created for this project yet.</Typography>
+                        )}
+                      </Box>
+                    </Paper>
+                  </Grid>
+                )}
               </Grid>
             </Box>
           </Box>

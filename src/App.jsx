@@ -15,8 +15,10 @@ import Reports from './pages/Reports';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
 import Documents from './pages/Documents';
+import WorkflowSettings from './frontend/views/WorkflowSettings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { ThemeContextProvider } from './context/ThemeContext';
+import { WorkflowProvider } from './frontend/context/WorkflowContext';
 import StoreProvider from './components/providers/StoreProvider';
 
 const AuthInterface = () => {
@@ -86,24 +88,27 @@ function App() {
   return (
     <StoreProvider>
       <ThemeContextProvider>
-        <BrowserRouter>
-          <Toaster position="top-right" />
-          <Routes>
-            {/* Public: Sign-in page */}
-            <Route path="/" element={<AuthInterface />} />
+        <WorkflowProvider>
+          <BrowserRouter>
+            <Toaster position="top-right" />
+            <Routes>
+              {/* Public: Sign-in page */}
+              <Route path="/" element={<AuthInterface />} />
 
-            {/* Protected: all app pages require a valid auth cookie */}
-            <Route path="/:company/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
-            <Route path="/:company/projects"  element={<ProtectedRoute element={<Projects />} />} />
-            <Route path="/:company/projects/:projectId/board" element={<ProtectedRoute element={<Board />} />} />
-            <Route path="/:company/tasks"     element={<ProtectedRoute element={<Tasks />} />} />
-            <Route path="/:company/users"     element={<ProtectedRoute element={<Users />} />} />
-            <Route path="/:company/reports"   element={<ProtectedRoute element={<Reports />} />} />
-            <Route path="/:company/notifications" element={<ProtectedRoute element={<Notifications />} />} />
-            <Route path="/:company/settings"      element={<ProtectedRoute element={<Settings />} />} />
-            <Route path="/:company/documents"     element={<ProtectedRoute element={<Documents />} />} />
-          </Routes>
-        </BrowserRouter>
+              {/* Protected: all app pages require a valid auth cookie */}
+              <Route path="/:company/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+              <Route path="/:company/projects"  element={<ProtectedRoute element={<Projects />} />} />
+              <Route path="/:company/projects/:projectId/board" element={<ProtectedRoute element={<Board />} />} />
+              <Route path="/:company/tasks"     element={<ProtectedRoute element={<Tasks />} />} />
+              <Route path="/:company/users"     element={<ProtectedRoute element={<Users />} />} />
+              <Route path="/:company/reports"   element={<ProtectedRoute element={<Reports />} />} />
+              <Route path="/:company/notifications" element={<ProtectedRoute element={<Notifications />} />} />
+              <Route path="/:company/settings"      element={<ProtectedRoute element={<Settings />} />} />
+              <Route path="/:company/settings/workflow" element={<ProtectedRoute element={<WorkflowSettings />} />} />
+              <Route path="/:company/documents"     element={<ProtectedRoute element={<Documents />} />} />
+            </Routes>
+          </BrowserRouter>
+        </WorkflowProvider>
       </ThemeContextProvider>
     </StoreProvider>
   );
@@ -111,5 +116,3 @@ function App() {
 
 export default App;
 
-
-export default App;

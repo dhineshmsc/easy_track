@@ -24,3 +24,9 @@ export async function getTasksCol() {
   const db = await getDb();
   return db.collection('tasks');
 }
+
+export async function getWorkflowSettingsCol() {
+  const db = await getDb();
+  return db.collection('workflow_settings');
+}
+

@@ -26,14 +26,17 @@ import { priorityColor, statusColor, getUserInitials, getAvatarColor } from '../
 import ProjectModal from '../components/projects/ProjectModal';
 import StoryModal from '../components/projects/StoryModal';
 import TaskModal from '../components/projects/TaskModal';
+import { useWorkflow } from '../context/WorkflowContext';
 
 const Projects = () => {
+  const { isStoryEnabled, enabledStages } = useWorkflow();
   const {
     company, username, projects, storiesByProject, tasksByStory, users,
     openModal, setOpenModal, editModal, setEditModal, editProjectId, setEditProjectId, projectForm, setProjectForm, handleSaveProject, handleDeleteProject, handlePartialUpdateProject,
     storyModalOpen, setStoryModalOpen, storyModalIsEdit, setStoryModalIsEdit, activeStoryId, setActiveStoryId, activeProjectId, setActiveProjectId, storyForm, setStoryForm, handleSaveStory, handleDeleteStory,
     taskModalOpen, setTaskModalOpen, taskModalIsEdit, setTaskModalIsEdit, activeTaskId, setActiveTaskId, taskForm, setTaskForm, handleSaveTask, handleDeleteTask, handlePartialUpdateTask, handlePartialUpdateStory
   } = useProjectData();
+
 
   // Filter states
   const [filterProject, setFilterProject] = useState('all');
@@ -267,21 +270,24 @@ const Projects = () => {
                 </Select>
               </FormControl>
 
-              {/* Story Filter */}
-              <FormControl size="small" sx={{ minWidth: 140 }} disabled={filterProject === 'all'}>
-                <InputLabel>Story</InputLabel>
-                <Select
-                  value={filterStory}
-                  label="Story"
-                  onChange={e => setFilterStory(e.target.value)}
-                  sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
-                >
-                  <MenuItem value="all">All Stories</MenuItem>
-                  {filterProject !== 'all' && (storiesByProject[filterProject] || []).map(s => (
-                    <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              {/* Story Filter — only visible when Story level is enabled */}
+              {isStoryEnabled && (
+                <FormControl size="small" sx={{ minWidth: 140 }} disabled={filterProject === 'all'}>
+                  <InputLabel>Story</InputLabel>
+                  <Select
+                    value={filterStory}
+                    label="Story"
+                    onChange={e => setFilterStory(e.target.value)}
+                    sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
+                  >
+                    <MenuItem value="all">All Stories</MenuItem>
+                    {filterProject !== 'all' && (storiesByProject[filterProject] || []).map(s => (
+                      <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+
 
               {/* Status Filter */}
               <FormControl size="small" sx={{ minWidth: 140 }}>

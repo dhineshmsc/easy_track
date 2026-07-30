@@ -17,11 +17,14 @@ import { useProjectData } from '../hooks/useProjectData';
 import { getUserInitials, getAvatarColor } from '../utils/projectsHelper';
 import TaskModal from '../components/projects/TaskModal';
 import TaskColumn from '../components/tasks/TaskColumn';
+import { useWorkflow } from '../context/WorkflowContext';
 
 const Tasks = () => {
   const { company } = useParams();
   const searchParams = useSearchParams();
   const taskIdParam = searchParams.get('taskId');
+  const { enabledStages, stageColors, getWorkStatusesForStage, getDefaultWorkStatusForStage, isStoryEnabled, isProjectEnabled } = useWorkflow();
+
   const {
     username, projects, storiesByProject, tasksByStory, users,
     taskModalOpen, setTaskModalOpen, taskModalIsEdit, setTaskModalIsEdit,
@@ -46,27 +49,19 @@ const Tasks = () => {
   const handleDrop = (e, targetStatus) => {
     const taskId = e.dataTransfer.getData('text/plain');
     if (taskId) {
-      const backendStatus = targetStatus === 'Todo' ? 'To Do' : targetStatus;
+      const backendStatus = targetStatus;
       const task = allTasks.find(t => t._id === taskId);
       const currentWorkStatus = task?.work_status || 'Not Started';
 
-      const TASK_STATUS_WORK_MAP = {
-        'To Do': ['Not Started', 'Ready', 'Planning', 'Waiting for Requirement', 'Waiting for Client'],
-        'Todo': ['Not Started', 'Ready', 'Planning', 'Waiting for Requirement', 'Waiting for Client'],
-        'Developing': ['Not Started', 'In Progress', 'On Hold', 'Blocked', 'Developed'],
-        'Testing': ['Not Started', 'Testing', 'Failed', 'Passed'],
-        'Code Review': ['Not Started', 'Reviewing', 'Failed', 'Passed'],
-        'Deploy': ['Not Started', 'Deploying', 'Failed', 'Passed'],
-        'Deploying': ['Not Started', 'Deploying', 'Failed', 'Passed'],
-        'Done': ['Completed', 'Not Completed']
-      };
-
-      const opts = TASK_STATUS_WORK_MAP[backendStatus] || [];
-      const newWorkStatus = opts.includes(currentWorkStatus) ? currentWorkStatus : (opts[0] || 'Not Started');
+      const validWorkStatuses = (getWorkStatusesForStage(targetStatus) || []).map(ws => ws.name);
+      const newWorkStatus = validWorkStatuses.includes(currentWorkStatus)
+        ? currentWorkStatus
+        : getDefaultWorkStatusForStage(targetStatus);
 
       handlePartialUpdateTask(taskId, { status: backendStatus, work_status: newWorkStatus });
     }
   };
+
 
   // Ref for horizontal scroll container
   const scrollContainerRef = useRef(null);
@@ -120,24 +115,16 @@ const Tasks = () => {
   // Normalise status grouping helper
   const normalizeStatus = (status) => {
     const s = (status || '').trim().toLowerCase();
-    if (s === 'to do' || s === 'todo') return 'Todo';
-    if (s === 'developing' || s === 'in progress') return 'Developing';
-    if (s === 'code review') return 'Code Review';
-    if (s === 'testing') return 'Testing';
-    if (s === 'deploy') return 'Deploy';
-    if (s === 'done') return 'Done';
-    return 'Todo'; // Default fallback
+    const match = (enabledStages || []).find(stg => stg.name.toLowerCase() === s || (stg.name === 'Todo' && (s === 'to do' || s === 'todo')));
+    if (match) return match.name;
+    return enabledStages[0]?.name || 'Todo';
   };
 
-  // Pre-populate columns
-  const columns = {
-    'Todo': [],
-    'Developing': [],
-    'Code Review': [],
-    'Testing': [],
-    'Deploy': [],
-    'Done': []
-  };
+  // Pre-populate columns dynamically from enabled stages
+  const columns = {};
+  (enabledStages || []).forEach(stg => {
+    columns[stg.name] = [];
+  });
 
   // Group filtered tasks by status
   filteredTasks.forEach(task => {
@@ -145,9 +132,11 @@ const Tasks = () => {
     if (columns[norm]) {
       columns[norm].push(task);
     } else {
-      columns['Todo'].push(task);
+      const fallback = enabledStages[0]?.name || 'Todo';
+      if (columns[fallback]) columns[fallback].push(task);
     }
   });
+
 
   // Horizontal scroll action handlers
   const handleScrollLeft = () => {
@@ -342,40 +331,45 @@ const Tasks = () => {
                 }}
               />
 
-              {/* Project Filter Selector */}
-              <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Project</InputLabel>
-                <Select
-                  value={filterProject}
-                  label="Project"
-                  onChange={e => {
-                    setFilterProject(e.target.value);
-                    setFilterStory('all'); // Reset story filter when project changes
-                  }}
-                  sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
-                >
-                  <MenuItem value="all">All Projects</MenuItem>
-                  {projects.map(p => (
-                    <MenuItem key={p._id} value={p._id}>{p.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              {/* Project Filter Selector — only show if Project level is enabled */}
+              {isProjectEnabled && (
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                  <InputLabel>Project</InputLabel>
+                  <Select
+                    value={filterProject}
+                    label="Project"
+                    onChange={e => {
+                      setFilterProject(e.target.value);
+                      setFilterStory('all'); // Reset story filter when project changes
+                    }}
+                    sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
+                  >
+                    <MenuItem value="all">All Projects</MenuItem>
+                    {projects.map(p => (
+                      <MenuItem key={p._id} value={p._id}>{p.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
 
-              {/* Story Filter Selector */}
-              <FormControl size="small" sx={{ minWidth: 150 }} disabled={filterProject === 'all'}>
-                <InputLabel>Story</InputLabel>
-                <Select
-                  value={filterStory}
-                  label="Story"
-                  onChange={e => setFilterStory(e.target.value)}
-                  sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
-                >
-                  <MenuItem value="all">All Stories</MenuItem>
-                  {filterProject !== 'all' && (storiesByProject[filterProject] || []).map(s => (
-                    <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              {/* Story Filter Selector — only show if Story level is enabled */}
+              {isStoryEnabled && (
+                <FormControl size="small" sx={{ minWidth: 150 }} disabled={filterProject === 'all'}>
+                  <InputLabel>Story</InputLabel>
+                  <Select
+                    value={filterStory}
+                    label="Story"
+                    onChange={e => setFilterStory(e.target.value)}
+                    sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
+                  >
+                    <MenuItem value="all">All Stories</MenuItem>
+                    {filterProject !== 'all' && (storiesByProject[filterProject] || []).map(s => (
+                      <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+
 
               <Button
                 variant="contained"
@@ -450,19 +444,13 @@ const Tasks = () => {
             }}
           >
             {Object.entries(columns).map(([status, statusTasks]) => {
-              const colHeaderColor = {
-                'Todo': '#64748b',
-                'Developing': '#0066cc',
-                'Code Review': '#7c3aed',
-                'Testing': '#ea580c',
-                'Deploy': '#059669',
-                'Done': '#16a34a'
-              }[status];
+              const colHeaderColor = stageColors[status] || '#64748b';
 
               return (
                 <TaskColumn
                   key={status}
                   status={status}
+                  stageColor={colHeaderColor}
                   tasks={statusTasks}
                   colHeaderColor={colHeaderColor}
                   draggedOverColumn={draggedOverColumn}
@@ -478,6 +466,7 @@ const Tasks = () => {
                 />
               );
             })}
+
           </Box>
         </Box>
       </Box>

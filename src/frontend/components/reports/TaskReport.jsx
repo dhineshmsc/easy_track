@@ -11,11 +11,14 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { toast } from 'react-hot-toast';
 import { getAvatarColor } from '../../utils/projectsHelper';
+import { useWorkflow } from '../../context/WorkflowContext';
 
 const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, users = [] }) => {
   const { company } = useParams();
   const router = useRouter();
+  const { enabledStages, isStoryEnabled } = useWorkflow();
   const [searchTerm, setSearchTerm] = useState('');
+
   const [projectFilter, setProjectFilter] = useState('all');
   const [storyFilter, setStoryFilter] = useState('all');
   const [assigneeFilter, setAssigneeFilter] = useState('all');
@@ -144,7 +147,7 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
   const handleExportCSV = () => {
     const headers = [
       'Task Name', 'Project', 'Story', 'Assignee', 'Reporter',
-      'Priority', 'Task Status', 'Workflow Status', 'Estimated Hours', 'Start Date', 'Due Date'
+      'Priority', 'Workflow', 'Work Status', 'Estimated Hours', 'Start Date', 'Due Date'
     ];
     const csvRows = [headers.join(',')];
 
@@ -233,7 +236,7 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     },
     {
       field: 'status',
-      headerName: 'Task Status',
+      headerName: 'Workflow',
       width: 95,
       renderCell: (params) => (
         <Chip label={params.value} size="small" color={getStatusColor(params.value)} variant="outlined" sx={{ fontWeight: 'bold', fontSize: '0.65rem', height: 20 }} />
@@ -241,7 +244,7 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
     },
     {
       field: 'workStatus',
-      headerName: 'Workflow Status',
+      headerName: 'Work Status',
       width: 120,
       renderCell: (params) => (
         <Chip label={params.value} size="small" color={getWorkflowColor(params.value)} variant="filled" sx={{ fontWeight: 'bold', fontSize: '0.65rem', height: 20 }} />
@@ -320,15 +323,11 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                 <InputLabel>Status</InputLabel>
                 <Select value={statusFilter} label="Status" onChange={e => setStatusFilter(e.target.value)}>
                   <MenuItem value="all">All Statuses</MenuItem>
-                  <MenuItem value="Todo">Todo</MenuItem>
-                  <MenuItem value="To Do">To Do</MenuItem>
-                  <MenuItem value="Developing">Developing</MenuItem>
-                  <MenuItem value="In Progress">In Progress</MenuItem>
-                  <MenuItem value="Code Review">Code Review</MenuItem>
-                  <MenuItem value="Testing">Testing</MenuItem>
-                  <MenuItem value="Deploy">Deploy</MenuItem>
-                  <MenuItem value="Done">Done</MenuItem>
+                  {enabledStages.map(stg => (
+                    <MenuItem key={stg.id} value={stg.name}>{stg.name}</MenuItem>
+                  ))}
                 </Select>
+
               </FormControl>
             </Grid>
             <Grid xs={12} sm={6} md={4} lg={1.5}>
@@ -438,13 +437,13 @@ const TaskReport = ({ projects = [], storiesByProject = {}, tasksByStory = {}, u
                   </Box>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="text.secondary">Task Status</Typography>
+                  <Typography variant="caption" color="text.secondary">Workflow</Typography>
                   <Box sx={{ mt: 0.5 }}>
                     <Chip label={selectedRow.status} size="small" color={getStatusColor(selectedRow.status)} variant="outlined" sx={{ fontWeight: 'bold' }} />
                   </Box>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="text.secondary">Workflow Status</Typography>
+                  <Typography variant="caption" color="text.secondary">Work Status</Typography>
                   <Box sx={{ mt: 0.5 }}>
                     <Chip label={selectedRow.workStatus} size="small" color={getWorkflowColor(selectedRow.workStatus)} variant="filled" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }} />
                   </Box>

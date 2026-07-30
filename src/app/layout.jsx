@@ -1,5 +1,6 @@
 import React from 'react';
 import { ThemeContextProvider } from '../frontend/context/ThemeContext';
+import { WorkflowProvider } from '../frontend/context/WorkflowContext';
 import StoreProvider from '../frontend/components/providers/StoreProvider';
 import { Toaster } from 'react-hot-toast';
 import '../index.css';
@@ -15,12 +16,13 @@ export default function RootLayout({ children }) {
       <body>
         <StoreProvider>
           <ThemeContextProvider>
-            <Toaster position="top-right" />
-            {children}
+            <WorkflowProvider>
+              <Toaster position="top-right" />
+              {children}
+            </WorkflowProvider>
           </ThemeContextProvider>
         </StoreProvider>
       </body>
     </html>
   );
 }
-

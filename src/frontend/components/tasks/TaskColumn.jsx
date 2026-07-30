@@ -7,13 +7,22 @@ import AddIcon from '@mui/icons-material/Add';
 import TaskCard from './TaskCard';
 
 // Color mappings for Light vs Dark modes
-const getColumnColors = (status, isDark) => {
+const getColumnColors = (status, isDark, customColor) => {
+  if (customColor) {
+    return {
+      bg: isDark ? `${customColor}15` : `${customColor}0d`,
+      header: isDark ? `${customColor}30` : `${customColor}20`,
+      border: customColor
+    };
+  }
+
   const lightColors = {
     'Todo':         { bg: '#f0f4ff', header: '#e0e8ff', border: '#c7d7fd' },
     'Developing':   { bg: '#f0f9ff', header: '#dbeeff', border: '#bae0fd' },
     'Code Review':  { bg: '#faf5ff', header: '#ede9fe', border: '#d8b4fe' },
     'Testing':      { bg: '#fff7ed', header: '#ffedd5', border: '#fed7aa' },
     'Deploy':       { bg: '#f0fdf4', header: '#dcfce7', border: '#a7f3d0' },
+    'Deploying':    { bg: '#f0fdf4', header: '#dcfce7', border: '#a7f3d0' },
     'Done':         { bg: '#f0fdf4', header: '#d1fae5', border: '#6ee7b7' },
     'default':      { bg: '#f8fafc', header: '#f1f5f9', border: '#e2e8f0' }
   };
@@ -24,6 +33,7 @@ const getColumnColors = (status, isDark) => {
     'Code Review':  { bg: '#1b1429', header: '#291d3e', border: '#422f64' },
     'Testing':      { bg: '#251a10', header: '#382818', border: '#594026' },
     'Deploy':       { bg: '#102219', header: '#183426', border: '#26533d' },
+    'Deploying':    { bg: '#102219', header: '#183426', border: '#26533d' },
     'Done':         { bg: '#0b1f17', header: '#122e23', border: '#1c4a38' },
     'default':      { bg: '#1c1c1e', header: '#2c2c2e', border: '#38383f' }
   };
@@ -34,6 +44,7 @@ const getColumnColors = (status, isDark) => {
 
 const TaskColumn = ({
   status,
+  stageColor,
   tasks,
   colHeaderColor,
   draggedOverColumn,
@@ -49,7 +60,8 @@ const TaskColumn = ({
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const colors = getColumnColors(status, isDark);
+  const colors = getColumnColors(status, isDark, stageColor || colHeaderColor);
+
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(status === 'Todo' ? 'To Do' : status);

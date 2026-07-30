@@ -29,6 +29,7 @@ import RichTextEditor, { MOCK_USERS } from '../tasks/RichTextEditor';
 import ChatBox from '../tasks/ChatBox';
 import ImageLightbox from '../common/ImageLightbox';
 import { setAttachments, clearAttachments } from '../../redux/taskSlice';
+import { useWorkflow } from '../../context/WorkflowContext';
 
 const TaskModal = ({
   open,
@@ -50,6 +51,8 @@ const TaskModal = ({
 }) => {
   const dispatch = useDispatch();
   const { company } = useParams();
+  const { enabledStages, isStoryEnabled, isTaskEnabled, isBugEnabled, enabledTaskTypes, getWorkStatusesForStage, getDefaultWorkStatusForStage } = useWorkflow();
+
 
   // Initialize React Hook Form
   const {
@@ -175,12 +178,13 @@ const TaskModal = ({
         }
       };
 
-      const initialStatus = taskForm.status || 'To Do';
-      let initialWork = taskForm.work_status || 'Not Started';
-      const validOptions = TASK_STATUS_WORK_MAP[initialStatus] || [];
-      if (!validOptions.includes(initialWork)) {
-        initialWork = validOptions[0] || 'Not Started';
+      const initialStatus = taskForm.status || enabledStages[0]?.name || 'Todo';
+      let initialWork = taskForm.work_status;
+      const validStatuses = (getWorkStatusesForStage(initialStatus) || []).map(ws => ws.name);
+      if (!initialWork || (validStatuses.length > 0 && !validStatuses.includes(initialWork))) {
+        initialWork = getDefaultWorkStatusForStage(initialStatus) || 'Not Started';
       }
+
 
       setWorkStatusHistory({
         [initialStatus]: initialWork
@@ -603,30 +607,32 @@ const TaskModal = ({
                     </FormControl>
                   )}
 
-                  {/* STORY SELECTION */}
-                  <FormControl fullWidth size="small">
-                    <InputLabel id="story-select-label">Parent Story</InputLabel>
-                    <Controller
-                      name="story_id"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          labelId="story-select-label"
-                          label="Parent Story"
-                          value={field.value}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          disabled={!selectedProjectId}
-                        >
-                          <MenuItem value=""><em>None</em></MenuItem>
-                          {stories.map((s) => (
-                            <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
-                          ))}
-                        </Select>
-                      )}
-                    />
-                  </FormControl>
+                  {/* STORY SELECTION — only show if Story level is enabled */}
+                  {isStoryEnabled && (
+                    <FormControl fullWidth size="small">
+                      <InputLabel id="story-select-label">Parent Story</InputLabel>
+                      <Controller
+                        name="story_id"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            labelId="story-select-label"
+                            label="Parent Story"
+                            value={field.value}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            disabled={!selectedProjectId}
+                          >
+                            <MenuItem value=""><em>None</em></MenuItem>
+                            {stories.map((s) => (
+                              <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
+                    </FormControl>
+                  )}
 
-                  {/* TYPE SELECT */}
+                  {/* TYPE SELECT — driven by WorkflowContext enabledTaskTypes */}
                   <FormControl fullWidth size="small">
                     <InputLabel id="type-select-label">Type</InputLabel>
                     <Controller
@@ -639,23 +645,25 @@ const TaskModal = ({
                           value={field.value}
                           onChange={(e) => field.onChange(e.target.value)}
                         >
-                          <MenuItem value="Task">Task</MenuItem>
-                          <MenuItem value="Bug">Bug</MenuItem>
+                          {enabledTaskTypes.map((t) => (
+                            <MenuItem key={t.id} value={t.name}>{t.name}</MenuItem>
+                          ))}
                         </Select>
                       )}
                     />
                   </FormControl>
 
+
                   {/* STATUS SELECT */}
                   <FormControl fullWidth size="small">
-                    <InputLabel id="status-select-label">Task Status</InputLabel>
+                    <InputLabel id="status-select-label">Workflow</InputLabel>
                     <Controller
                       name="status"
                       control={control}
                       render={({ field }) => (
                         <Select
                           labelId="status-select-label"
-                          label="Task Status"
+                          label="Workflow"
                           value={field.value === 'Todo' ? 'To Do' : (field.value || 'To Do')}
                           onChange={(e) => {
                             const newStatus = e.target.value;
@@ -667,17 +675,13 @@ const TaskModal = ({
                             
                             field.onChange(newStatus);
                             
-                            const opts = TASK_STATUS_WORK_MAP[newStatus] || [];
-                            const newWork = currentHistory[newStatus] || opts[0] || 'Not Started';
+                            const newWork = currentHistory[newStatus] || getDefaultWorkStatusForStage(newStatus);
                             setValue('work_status', newWork);
                           }}
                         >
-                          <MenuItem value="To Do">Todo</MenuItem>
-                          <MenuItem value="Developing">Developing</MenuItem>
-                          <MenuItem value="Code Review">Code Review</MenuItem>
-                          <MenuItem value="Testing">Testing</MenuItem>
-                          <MenuItem value="Deploy">Deploy</MenuItem>
-                          <MenuItem value="Done">Done</MenuItem>
+                          {enabledStages.map((stg) => (
+                            <MenuItem key={stg.id} value={stg.name}>{stg.name}</MenuItem>
+                          ))}
                         </Select>
                       )}
                     />
@@ -685,14 +689,14 @@ const TaskModal = ({
 
                   {/* TASK WORK STATUS */}
                   <FormControl fullWidth size="small">
-                    <InputLabel id="work-status-select-label">Task Work Status</InputLabel>
+                    <InputLabel id="work-status-select-label">Work Status</InputLabel>
                     <Controller
                       name="work_status"
                       control={control}
                       render={({ field }) => (
                         <Select
                           labelId="work-status-select-label"
-                          label="Task Work Status"
+                          label="Work Status"
                           value={field.value || ''}
                           onChange={(e) => {
                             const newWork = e.target.value;
@@ -704,12 +708,13 @@ const TaskModal = ({
                             }));
                           }}
                         >
-                          {(TASK_STATUS_WORK_MAP[watch('status') || 'To Do'] || []).map((opt) => (
-                            <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                          {(getWorkStatusesForStage(watch('status') || enabledStages[0]?.name) || []).map((opt) => (
+                            <MenuItem key={opt.id || opt.name} value={opt.name}>{opt.name}</MenuItem>
                           ))}
                         </Select>
                       )}
                     />
+
                   </FormControl>
 
                   {/* PRIORITY SELECT */}
