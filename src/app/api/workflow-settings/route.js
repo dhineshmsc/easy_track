@@ -59,6 +59,27 @@ export const DEFAULT_WORKFLOW_SETTINGS = {
   }
 };
 
+function ensureDeployingNotStarted(taskWorkStatus) {
+  if (!taskWorkStatus) return taskWorkStatus;
+  const key = Object.keys(taskWorkStatus).find(k => k.toLowerCase() === 'deploying') || 'Deploying';
+  let list = taskWorkStatus[key];
+  if (list && Array.isArray(list)) {
+    let notStartedItem = list.find(item => item.id === 'not_started' || String(item.name).toLowerCase() === 'not started');
+    if (!notStartedItem) {
+      list = list.map(item => ({ ...item, is_default: false }));
+      list.unshift({ id: 'not_started', name: 'Not Started', enabled: true, order: 1, is_default: true });
+    } else {
+      list = list.map(item => ({
+        ...item,
+        is_default: (item.id === 'not_started' || String(item.name).toLowerCase() === 'not started')
+      }));
+    }
+    list.forEach((item, idx) => { item.order = idx + 1; });
+    taskWorkStatus[key] = list;
+  }
+  return taskWorkStatus;
+}
+
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
@@ -81,6 +102,9 @@ export async function GET(req) {
     }
 
     doc._id = String(doc._id);
+    if (doc.task_work_status) {
+      ensureDeployingNotStarted(doc.task_work_status);
+    }
     return NextResponse.json(doc);
   } catch (error) {
     console.error('Workflow settings GET error:', error);

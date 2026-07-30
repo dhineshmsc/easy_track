@@ -87,6 +87,24 @@ export const WorkflowProvider = ({ children }) => {
       if (res.ok) {
         const data = await res.json();
         if (data && data.project_flow) {
+          if (data.task_work_status) {
+            const key = Object.keys(data.task_work_status).find(k => k.toLowerCase() === 'deploying') || 'Deploying';
+            let list = data.task_work_status[key];
+            if (list && Array.isArray(list)) {
+              let notStartedItem = list.find(item => item.id === 'not_started' || String(item.name).toLowerCase() === 'not started');
+              if (!notStartedItem) {
+                list = list.map(item => ({ ...item, is_default: false }));
+                list.unshift({ id: 'not_started', name: 'Not Started', enabled: true, order: 1, is_default: true });
+              } else {
+                list = list.map(item => ({
+                  ...item,
+                  is_default: (item.id === 'not_started' || String(item.name).toLowerCase() === 'not started')
+                }));
+              }
+              list.forEach((item, idx) => { item.order = idx + 1; });
+              data.task_work_status[key] = list;
+            }
+          }
           setWorkflowSettings(data);
         }
       }

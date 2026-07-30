@@ -16,6 +16,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import SearchIcon from '@mui/icons-material/Search';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import Sidebar from '../components/dashboard/Sidebar';
 import TopNav from '../components/dashboard/TopNav';
@@ -29,7 +30,7 @@ import TaskModal from '../components/projects/TaskModal';
 import { useWorkflow } from '../context/WorkflowContext';
 
 const Projects = () => {
-  const { isStoryEnabled, enabledStages } = useWorkflow();
+  const { isStoryEnabled, isProjectEnabled, enabledStages, workflowSettings } = useWorkflow();
   const {
     company, username, projects, storiesByProject, tasksByStory, users,
     openModal, setOpenModal, editModal, setEditModal, editProjectId, setEditProjectId, projectForm, setProjectForm, handleSaveProject, handleDeleteProject, handlePartialUpdateProject,
@@ -43,7 +44,10 @@ const Projects = () => {
   const [filterStory, setFilterStory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAssignees, setFilterAssignees] = useState([]);
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterWorkflow, setFilterWorkflow] = useState('all');
+  const [filterWorkStatus, setFilterWorkStatus] = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
+  const [filterOverdue, setFilterOverdue] = useState(false);
 
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editingTaskValue, setEditingTaskValue] = useState("");
@@ -62,23 +66,104 @@ const Projects = () => {
     setCollapsedStories(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const isTaskOverdue = (task) => {
+    if (!task || !task.end_date) return false;
+    const isDone = (task.status || '').trim().toLowerCase() === 'done' || (task.status || '').trim().toLowerCase() === 'completed';
+    if (isDone) return false;
+    const endDate = new Date(task.end_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return endDate < today;
+  };
+
+  const overdueCount = React.useMemo(() => {
+    let count = 0;
+    Object.values(tasksByStory).forEach(list => {
+      (list || []).forEach(task => {
+        if (isTaskOverdue(task)) count++;
+      });
+    });
+    return count;
+  }, [tasksByStory]);
+
+  const availableWorkStatuses = React.useMemo(() => {
+    const map = workflowSettings?.task_work_status || {};
+    let stagesToUse = enabledStages || [];
+    if (filterWorkflow !== 'all') {
+      stagesToUse = stagesToUse.filter(s => s.name.toLowerCase() === filterWorkflow.toLowerCase());
+    }
+    const statusesSet = new Set();
+    stagesToUse.forEach(stg => {
+      const list = map[stg.name] || [];
+      list.filter(item => item.enabled !== false).forEach(item => statusesSet.add(item.name));
+    });
+    return Array.from(statusesSet);
+  }, [workflowSettings, enabledStages, filterWorkflow]);
+
   const getFilteredTasksForStory = (storyId) => {
     const tasks = tasksByStory[storyId] || [];
+
+    let storyObj = null;
+    let projObj = null;
+    if (storyId.startsWith('proj_')) {
+      const pid = storyId.replace('proj_', '');
+      projObj = projects.find(p => p._id === pid);
+    } else {
+      for (const p of projects) {
+        const sList = storiesByProject[p._id] || [];
+        const foundS = sList.find(s => s._id === storyId);
+        if (foundS) {
+          storyObj = foundS;
+          projObj = p;
+          break;
+        }
+      }
+    }
+
     return tasks.filter(task => {
       if (filterAssignees.length > 0 && !filterAssignees.includes(task.assigned_user)) return false;
-      if (filterStatus !== 'all') {
+
+      // Workflow stage filter
+      if (filterWorkflow !== 'all') {
         const tStatus = (task.status || '').toLowerCase().trim();
-        const targetStatus = filterStatus.toLowerCase().trim();
-        if (targetStatus === 'todo' || targetStatus === 'to do') {
+        const targetWorkflow = filterWorkflow.toLowerCase().trim();
+        if (targetWorkflow === 'todo' || targetWorkflow === 'to do') {
           if (tStatus !== 'todo' && tStatus !== 'to do') return false;
-        } else if (tStatus !== targetStatus) {
+        } else if (tStatus !== targetWorkflow) {
           return false;
         }
       }
+
+      // Work status filter
+      if (filterWorkStatus !== 'all') {
+        const tWork = (task.work_status || '').toLowerCase().trim();
+        const targetWork = filterWorkStatus.toLowerCase().trim();
+        if (tWork !== targetWork) return false;
+      }
+
+      // Priority filter
+      if (filterPriority !== 'all') {
+        const tPriority = (task.priority || '').toLowerCase().trim();
+        const targetPriority = filterPriority.toLowerCase().trim();
+        if (tPriority !== targetPriority) return false;
+      }
+
+      // Overdue filter
+      if (filterOverdue && !isTaskOverdue(task)) {
+        return false;
+      }
+
       if (searchTerm) {
         const q = searchTerm.toLowerCase();
-        const matchT = (task.name || '').toLowerCase().includes(q) || (task.custom_id || '').toLowerCase().includes(q) || (task.description || '').toLowerCase().includes(q);
-        if (!matchT) return false;
+        const nameMatch = (task.name || '').toLowerCase().includes(q);
+        const descMatch = (task.description || '').toLowerCase().includes(q);
+        const idMatch = (task.custom_id || '').toLowerCase().includes(q);
+        const storyMatch = storyObj && ((storyObj.name || '').toLowerCase().includes(q) || (storyObj.custom_id || '').toLowerCase().includes(q));
+        const projMatch = projObj && ((projObj.name || '').toLowerCase().includes(q) || (projObj.custom_id || '').toLowerCase().includes(q));
+
+        if (!nameMatch && !descMatch && !idMatch && !storyMatch && !projMatch) {
+          return false;
+        }
       }
       return true;
     });
@@ -89,22 +174,11 @@ const Projects = () => {
     return stories.filter(story => {
       if (filterStory !== 'all' && story._id !== filterStory) return false;
 
-      if (filterAssignees.length > 0) {
-        const sAssignees = Array.isArray(story.assigned_user) ? story.assigned_user : (story.assigned_user ? [story.assigned_user] : []);
-        const hasAssignee = sAssignees.some(id => filterAssignees.includes(id));
-        if (!hasAssignee) {
-          const tasks = getFilteredTasksForStory(story._id);
-          if (tasks.length === 0) return false;
-        }
-      }
+      const hasActiveTaskFilters = filterAssignees.length > 0 || filterWorkflow !== 'all' || filterWorkStatus !== 'all' || filterPriority !== 'all' || filterOverdue || !!searchTerm;
 
-      if (filterStatus !== 'all') {
-        const sStatus = (story.status || '').toLowerCase().trim();
-        const matchS = sStatus === filterStatus.toLowerCase().trim();
-        if (!matchS) {
-          const tasks = getFilteredTasksForStory(story._id);
-          if (tasks.length === 0) return false;
-        }
+      if (hasActiveTaskFilters) {
+        const tasks = getFilteredTasksForStory(story._id);
+        if (tasks.length === 0) return false;
       }
 
       if (searchTerm) {
@@ -123,21 +197,11 @@ const Projects = () => {
   const filteredProjects = projects.filter(proj => {
     if (filterProject !== 'all' && proj._id !== filterProject) return false;
 
-    if (filterAssignees.length > 0) {
-      const pAssignees = Array.isArray(proj.assigned_user) ? proj.assigned_user : (proj.assigned_user ? [proj.assigned_user] : []);
-      if (!pAssignees.some(id => filterAssignees.includes(id))) {
-        const stories = getFilteredStoriesForProject(proj._id);
-        if (stories.length === 0) return false;
-      }
-    }
+    const hasActiveTaskFilters = filterAssignees.length > 0 || filterWorkflow !== 'all' || filterWorkStatus !== 'all' || filterPriority !== 'all' || filterOverdue || !!searchTerm;
 
-    if (filterStatus !== 'all') {
-      const pStatus = (proj.status || '').toLowerCase().trim();
-      const matchP = pStatus === filterStatus.toLowerCase().trim();
-      if (!matchP) {
-        const stories = getFilteredStoriesForProject(proj._id);
-        if (stories.length === 0) return false;
-      }
+    if (hasActiveTaskFilters) {
+      const stories = getFilteredStoriesForProject(proj._id);
+      if (stories.length === 0) return false;
     }
 
     if (searchTerm) {
@@ -232,102 +296,224 @@ const Projects = () => {
                 </Box>
               )}
 
-              {/* Search */}
-              <TextField
+          {/* Filter Controls Bar (Single Row Flex) */}
+          <Box sx={{
+            px: 2,
+            py: 1,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
+            '&::-webkit-scrollbar': { display: 'none' },
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'none'
+          }}>
+            {/* User Avatar Filters */}
+            {users.length > 0 && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, borderRight: '1px solid', borderColor: 'divider', pr: 1, py: 0.2, flexShrink: 0 }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold', mr: 0.3, fontSize: '0.72rem' }}>
+                  Assignee:
+                </Typography>
+                {users.map(user => {
+                  const userId = user._id || user.user_id;
+                  const isSelected = filterAssignees.includes(userId);
+                  return (
+                    <Tooltip key={userId} title={user.name} arrow>
+                      <Avatar
+                        onClick={() => {
+                          setFilterAssignees(prev =>
+                            prev.includes(userId)
+                              ? prev.filter(id => id !== userId)
+                              : [...prev, userId]
+                          );
+                        }}
+                        sx={{
+                          width: 26,
+                          height: 26,
+                          fontSize: '0.7rem',
+                          bgcolor: getAvatarColor(user.name),
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          border: isSelected ? '2px solid #6366f1' : '2px solid transparent',
+                          boxShadow: isSelected ? '0 0 5px rgba(99,102,241,0.5)' : 'none',
+                          opacity: filterAssignees.length > 0 && !isSelected ? 0.4 : 1,
+                          '&:hover': { opacity: 1, transform: 'scale(1.08)' }
+                        }}
+                      >
+                        {getUserInitials(userId, users)}
+                      </Avatar>
+                    </Tooltip>
+                  );
+                })}
+              </Box>
+            )}
+
+            {/* Search */}
+            <TextField
+              size="small"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: 'text.secondary', fontSize: 16 }} />
+                    </InputAdornment>
+                  )
+                }
+              }}
+              sx={{
+                flexShrink: 0,
+                width: 140,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '8px',
+                  height: 36,
+                  fontSize: '0.8rem',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc'
+                }
+              }}
+            />
+
+            {/* Project Filter */}
+            <FormControl size="small" sx={{ flexShrink: 0, width: 125 }}>
+              <InputLabel sx={{ fontSize: '0.8rem' }}>Project</InputLabel>
+              <Select
+                value={filterProject}
+                label="Project"
+                onChange={e => { setFilterProject(e.target.value); setFilterStory('all'); }}
+                sx={{ borderRadius: '8px', height: 36, fontSize: '0.8rem', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
+              >
+                <MenuItem value="all">All Projects</MenuItem>
+                {projects.map(p => <MenuItem key={p._id} value={p._id}>{p.name}</MenuItem>)}
+              </Select>
+            </FormControl>
+
+            {/* Story Filter — only visible when Story level is enabled */}
+            {isStoryEnabled && (
+              <FormControl size="small" sx={{ flexShrink: 0, width: 125 }} disabled={filterProject === 'all'}>
+                <InputLabel sx={{ fontSize: '0.8rem' }}>Story</InputLabel>
+                <Select
+                  value={filterStory}
+                  label="Story"
+                  onChange={e => setFilterStory(e.target.value)}
+                  sx={{ borderRadius: '8px', height: 36, fontSize: '0.8rem', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
+                >
+                  <MenuItem value="all">All Stories</MenuItem>
+                  {filterProject !== 'all' && (storiesByProject[filterProject] || []).map(s => (
+                    <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            {/* Workflow Filter */}
+            <FormControl size="small" sx={{ flexShrink: 0, width: 125 }}>
+              <InputLabel sx={{ fontSize: '0.8rem' }}>Workflow</InputLabel>
+              <Select
+                value={filterWorkflow}
+                label="Workflow"
+                onChange={e => { setFilterWorkflow(e.target.value); setFilterWorkStatus('all'); }}
+                sx={{ borderRadius: '8px', height: 36, fontSize: '0.8rem', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
+              >
+                <MenuItem value="all">All Workflows</MenuItem>
+                {(enabledStages || []).map(stg => (
+                  <MenuItem key={stg.id} value={stg.name}>{stg.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Work Status Filter */}
+            <FormControl size="small" sx={{ flexShrink: 0, width: 135 }}>
+              <InputLabel sx={{ fontSize: '0.8rem' }}>Work Status</InputLabel>
+              <Select
+                value={filterWorkStatus}
+                label="Work Status"
+                onChange={e => setFilterWorkStatus(e.target.value)}
+                sx={{ borderRadius: '8px', height: 36, fontSize: '0.8rem', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
+              >
+                <MenuItem value="all">All Work Statuses</MenuItem>
+                {availableWorkStatuses.map(ws => (
+                  <MenuItem key={ws} value={ws}>{ws}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Priority Filter */}
+            <FormControl size="small" sx={{ flexShrink: 0, width: 120 }}>
+              <InputLabel sx={{ fontSize: '0.8rem' }}>Priority</InputLabel>
+              <Select
+                value={filterPriority}
+                label="Priority"
+                onChange={e => setFilterPriority(e.target.value)}
+                sx={{ borderRadius: '8px', height: 36, fontSize: '0.8rem', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
+              >
+                <MenuItem value="all">All Priorities</MenuItem>
+                <MenuItem value="Critical">Critical</MenuItem>
+                <MenuItem value="High">High</MenuItem>
+                <MenuItem value="Medium">Medium</MenuItem>
+                <MenuItem value="Low">Low</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Overdue Button */}
+            <Button
+              size="small"
+              variant={filterOverdue ? "contained" : "outlined"}
+              startIcon={<WarningAmberIcon sx={{ fontSize: '1rem', color: filterOverdue ? '#ffffff' : '#d97706' }} />}
+              onClick={() => setFilterOverdue(prev => !prev)}
+              sx={{
+                flexShrink: 0,
+                height: 36,
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                textTransform: 'none',
+                px: 1.2,
+                bgcolor: filterOverdue
+                  ? '#d97706'
+                  : (theme) => theme.palette.mode === 'dark' ? 'rgba(217, 119, 6, 0.16)' : '#fffbe8',
+                color: filterOverdue ? '#ffffff' : '#b45309',
+                borderColor: filterOverdue ? '#b45309' : '#f59e0b',
+                boxShadow: filterOverdue ? '0 2px 8px rgba(217, 119, 6, 0.4)' : 'none',
+                '&:hover': {
+                  bgcolor: filterOverdue
+                    ? '#b45309'
+                    : (theme) => theme.palette.mode === 'dark' ? 'rgba(217, 119, 6, 0.28)' : '#fef3c7',
+                  borderColor: '#d97706'
+                }
+              }}
+            >
+              Overdue {overdueCount > 0 && `(${overdueCount})`}
+            </Button>
+
+            {/* Reset Filters button */}
+            {(filterProject !== 'all' || filterStory !== 'all' || filterAssignees.length > 0 || filterWorkflow !== 'all' || filterWorkStatus !== 'all' || filterPriority !== 'all' || filterOverdue || searchTerm) && (
+              <Button
                 size="small"
-                placeholder="Search by ID, name..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
-                      </InputAdornment>
-                    )
-                  }
+                variant="outlined"
+                color="secondary"
+                onClick={() => {
+                  setFilterProject('all');
+                  setFilterStory('all');
+                  setFilterWorkflow('all');
+                  setFilterWorkStatus('all');
+                  setFilterPriority('all');
+                  setFilterOverdue(false);
+                  setFilterAssignees([]);
+                  setSearchTerm('');
                 }}
-                sx={{
-                  width: 200,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '8px',
-                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc'
-                  }
-                }}
-              />
-
-              {/* Project Filter */}
-              <FormControl size="small" sx={{ minWidth: 140 }}>
-                <InputLabel>Project</InputLabel>
-                <Select
-                  value={filterProject}
-                  label="Project"
-                  onChange={e => { setFilterProject(e.target.value); setFilterStory('all'); }}
-                  sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
-                >
-                  <MenuItem value="all">All Projects</MenuItem>
-                  {projects.map(p => <MenuItem key={p._id} value={p._id}>{p.name}</MenuItem>)}
-                </Select>
-              </FormControl>
-
-              {/* Story Filter — only visible when Story level is enabled */}
-              {isStoryEnabled && (
-                <FormControl size="small" sx={{ minWidth: 140 }} disabled={filterProject === 'all'}>
-                  <InputLabel>Story</InputLabel>
-                  <Select
-                    value={filterStory}
-                    label="Story"
-                    onChange={e => setFilterStory(e.target.value)}
-                    sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
-                  >
-                    <MenuItem value="all">All Stories</MenuItem>
-                    {filterProject !== 'all' && (storiesByProject[filterProject] || []).map(s => (
-                      <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-
-
-              {/* Status Filter */}
-              <FormControl size="small" sx={{ minWidth: 140 }}>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={filterStatus}
-                  label="Status"
-                  onChange={e => setFilterStatus(e.target.value)}
-                  sx={{ borderRadius: '8px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0c0c0e' : '#f8fafc' }}
-                >
-                  <MenuItem value="all">All Statuses</MenuItem>
-                  <MenuItem value="To Do">To Do</MenuItem>
-                  <MenuItem value="In Progress">In Progress</MenuItem>
-                  <MenuItem value="Code Review">Code Review</MenuItem>
-                  <MenuItem value="Testing">Testing</MenuItem>
-                  <MenuItem value="Deploy">Deploy</MenuItem>
-                  <MenuItem value="Done">Done</MenuItem>
-                  <MenuItem value="Not Started">Not Started</MenuItem>
-                  <MenuItem value="Completed">Completed</MenuItem>
-                </Select>
-              </FormControl>
-
-              {/* Reset Filters button */}
-              {(filterProject !== 'all' || filterStory !== 'all' || filterAssignees.length > 0 || filterStatus !== 'all' || searchTerm) && (
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => {
-                    setFilterProject('all');
-                    setFilterStory('all');
-                    setFilterAssignees([]);
-                    setFilterStatus('all');
-                    setSearchTerm('');
-                  }}
-                  sx={{ borderRadius: '8px', textTransform: 'none' }}
-                >
-                  Reset Filters
-                </Button>
-              )}
+                sx={{ flexShrink: 0, height: 36, borderRadius: '8px', fontSize: '0.78rem', px: 1.2 }}
+              >
+                Reset Filters
+              </Button>
+            )}
+          </Box>
             </Box>
           </Box>
 
